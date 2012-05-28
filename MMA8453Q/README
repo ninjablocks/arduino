@@ -1,0 +1,8 @@
+  MMA8453Q.cpp - MMA8453Q Accelerometer library
+  
+  Based on the MMA8453Q example by Kerry D Wong from http://www.kerrywong.com/2012/01/09/interfacing-mma8453q-with-arduino/ 
+  
+	Version 0.2: 5th May 2012 by JP Liew 
+		- moved to MMA8453Q library
+		
+	Version 0.1: by Marcus Schappi www.ninjablocks.com

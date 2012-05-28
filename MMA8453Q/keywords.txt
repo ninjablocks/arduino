@@ -1,0 +1,31 @@
+#######################################
+# Syntax Coloring Map For MMQ8453Q
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+MMA8453Q	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+init	KEYWORD2
+regRead	KEYWORD2
+regWrite	KEYWORD2
+standbyMode	KEYWORD2
+activeMode	KEYWORD2
+lowresMode	KEYWORD2
+hiresMode	KEYWORD2
+getAccXYZ	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+MMA	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################

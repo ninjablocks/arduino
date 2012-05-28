@@ -1,0 +1,33 @@
+Ninja Blocks Arduino Source Code.
+Developed by www.ninjablocks.com based on other Open Source Libraries.
+
+Version 0.2: 5th May 2012 by JP Liew 
+
+Version 0.1: by Marcus Schappi www.ninjablocks.com
+
+Libraries Required
+==================
+
+1. Ninja (Ninja.h header file)
+2. Sensors (Ninja Blocks library)
+3. NinjaObjects (Ninja Blocks library)
+4. aJson
+5. DHT22
+6. Wire
+7. I2C
+8. MMA8453Q
+9. RCSwitch
+
+NOTE: Please read 3rd party's library README for information related to respective lib.
+
+
+Installation instructions
+=========================
+
+1. Extract / Check out to Arduino's libraries folder.
+2. Ninja Arduino's sketch is located inside 
+		
+		libraries
+				--->Ninja
+						--->NinjaArduino
+

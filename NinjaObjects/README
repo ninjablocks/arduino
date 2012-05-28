@@ -1,0 +1,9 @@
+  NinjaObjects.cpp - Ninja Objects library
+  
+  Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
+  
+	Version 0.2: 5th May 2012 by JP Liew 
+		- moved to NinjaObjects library
+		- added doReactors
+		
+	Version 0.1: by Marcus Schappi www.ninjablocks.com
