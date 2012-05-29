@@ -1,9 +1,5 @@
 Ninja Blocks Arduino Source Code.
-Developed by www.ninjablocks.com based on other Open Source Libraries.
-
-Version 0.2: 5th May 2012 by JP Liew 
-
-Version 0.1: by Marcus Schappi www.ninjablocks.com
+Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
 Libraries Required
 ==================
@@ -18,7 +14,7 @@ Libraries Required
 8. MMA8453Q
 9. RCSwitch
 
-NOTE: Please read 3rd party's library README for information related to respective lib.
+NOTE: Please read 3rd party library's README for respective author's name and usage guide.
 
 
 Installation instructions

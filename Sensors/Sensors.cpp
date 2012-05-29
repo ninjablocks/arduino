@@ -17,15 +17,8 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-	Version 0.3: 29th May 2012 JP Liew
-		- added UNKNOWN sensor to return ADC value
-		- added 433Mhz Transmitter ID
-
-	Version 0.2: 5th May 2012 by JP Liew 
-		- moved to Sensors library
-		
-	Version 0.1: by Marcus Schappi www.ninjablocks.com
-
+	Read README for version info.
+	
 */
 
 #include <Ninja.h>

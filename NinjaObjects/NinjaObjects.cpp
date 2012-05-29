@@ -17,20 +17,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-	Version 0.31: 28th May 2012 by JP Liew
-		- JSON protocol cut short to G,V,D,DA
-		- fix RGB ID bug, should be 1000
-		- return ID PIN Value if sensor UNKNOWN
-		
-
-	Version 0.3: 25th May 2012 by JP Liew
-		- restructure JSON protocol to encapsulate devices with GUID, VID, DID and DATA
-
-	Version 0.2: 5th May 2012 by JP Liew 
-		- moved to NinjaObjects library
-		- added doReactors
-		
-	Version 0.1: by Marcus Schappi www.ninjablocks.com
+	Read README for version info.
 
 */
 
