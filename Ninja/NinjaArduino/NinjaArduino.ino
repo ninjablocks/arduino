@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <MMA8453Q.h>
 #include <NinjaObjects.h>
+#include <RCSwitch.h>
 
 void setup()
 {
@@ -23,4 +24,3 @@ void loop()
   nOBJECTS.sendObjects();      // Send Ninja Objects 
   nOBJECTS.doReactors();       // Receive Ninja Objects reactors
 }
-

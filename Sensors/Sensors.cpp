@@ -17,6 +17,9 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+	Version 0.3: 29th May 2012 JP Liew
+		- added UNKNOWN sensor to return ADC value
+		- added 433Mhz Transmitter ID
 
 	Version 0.2: 5th May 2012 by JP Liew 
 		- moved to Sensors library
@@ -49,12 +52,14 @@ int SENSORS::idTheType(int sensorValue, bool debug)
 	
 	if (sensorValue > 178 && sensorValue < 198) { // Distance (ADC Value=188)
 		return 10; 
-	} else if (sensorValue > 511 && sensorValue < 531) { // Humidity & Temp (ADC Value=521)
-			return 8;
 	} else if (sensorValue > 250 && sensorValue < 270) { // PIR (ADC Value=260 )
 			return 7;
+	} else if (sensorValue > 327 && sensorValue < 347) { // 433Mhz Transmitter (ADC Value=337)
+			return 1001;
 	} else if (sensorValue > 365 && sensorValue < 385) { // Light (ADC Value=375)
 			return 6;
+	} else if (sensorValue > 511 && sensorValue < 531) { // Humidity & Temp (ADC Value=521)
+			return 8;
 	} else if (sensorValue > 782 && sensorValue < 802) { // Button (ADC value=792)
 			return 5;
 	} else if (sensorValue > 1010) { // Nothing
@@ -94,6 +99,11 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 	
 	switch (deviceID)
 	{
+		case 0:
+			// UNKNOWN Sensor, pass in the ADC Value
+			sensorValue = analogRead(aInPin);
+			return sensorValue;
+			
 		case 5:
 			// Push Button Sensor
 			sensorValue = digitalRead(dInPin) * 1023;
@@ -134,44 +144,6 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		default:		// Invalid sensor ID
 			return -1;
 	}
-		
-/*	
-	if(type == "LIGHT")
-	{
-		sensorValue = analogRead(aInPin);
-		return sensorValue;
-	}
-	else if(type == "DISTANCE")
-	{
-		sensorValue = analogRead(aInPin);
-		return sensorValue;
-	}
-	else if(type == "HUMIDITY")
-	{
-		myDHT22.setPIN(dInPin);
-		errorCode = myDHT22.readData();
-		if ((errorCode==DHT_ERROR_NONE) || (errorCode==DHT_ERROR_TOOQUICK))
-			return myDHT22.getHumidity();
-		else
-			return 0;
-	}
-	else if(type == "BUTTON")
-	{
-		//pinMode(dInPin, INPUT);
-		sensorValue = digitalRead(dInPin) * 1023;
-		return sensorValue;
-	}
-	else if(type == "PIR")
-	{
-		sensorValue = digitalRead(dInPin) * 1023;
-		return sensorValue;
-	}
-	else
-	{
-		return 0;
-	}
-	*/
-	
 }
 
 float SENSORS::getBoardTemperature()

@@ -106,6 +106,7 @@ void RCSwitch::enableTransmit(int nTransmitterPin) {
   * Disable transmissions
   */
 void RCSwitch::disableTransmit() {
+	pinMode(this->nTransmitterPin, INPUT);
   this->nTransmitterPin = -1;
 }
 

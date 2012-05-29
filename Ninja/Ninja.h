@@ -30,11 +30,11 @@
 #define IO_PIN_P1_2		17
 #define IO_PIN_P1_3		3
 
-// Digital PIN Port 2
+// Digital PIN Port 2.  NOTE: There is no IO_PIN_P2_2 because this is a pure analog pin ADC6
 #define IO_PIN_P2_1		15
 #define IO_PIN_P2_3		5
 
-// Digital PIN Port 3
+// Digital PIN Port 3.  NOTE: There is no IO_PIN_P3_2 because this is a pure analog pin ADC7
 #define IO_PIN_P3_1		16
 #define IO_PIN_P3_3		6
 

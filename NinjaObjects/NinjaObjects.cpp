@@ -17,6 +17,12 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+	Version 0.31: 28th May 2012 by JP Liew
+		- JSON protocol cut short to G,V,D,DA
+		- fix RGB ID bug, should be 1000
+		- return ID PIN Value if sensor UNKNOWN
+		
+
 	Version 0.3: 25th May 2012 by JP Liew
 		- restructure JSON protocol to encapsulate devices with GUID, VID, DID and DATA
 
@@ -34,8 +40,12 @@
 #include <Sensors.h>
 #include <MMA8453Q.h>
 #include "NinjaObjects.h"
+#include <RCSwitch.h>
 
-#define recvLEN 128        // this is really bad, will need to work out dynamic length
+
+#define recvLEN 	128        // this is really bad, will need to work out dynamic length
+#define GUID_LEN	36
+#define DATA_LEN	50
 
 struct __freelist {
   size_t sz;
@@ -49,12 +59,14 @@ char serInStr[recvLEN];  // array to hold the incoming serial string bytes
 extern char * const __brkval;
 extern struct __freelist *__flp;
 
-char strGUID[36];
+char strGUID[GUID_LEN];
 int intVID=0;
 int intDID=0;
-char strDATA[50];
+char strDATA[DATA_LEN];
 int intDATA=0;
 boolean IsDATAString=0;
+
+RCSwitch mySwitch = RCSwitch();
 
 
 NinjaObjects::NinjaObjects()
@@ -158,14 +170,14 @@ boolean NinjaObjects::decodeJSON()
 				aJsonObject* device = aJson.getArrayItem(devices,0);
 				if (device !=NULL)
 				{
-					aJsonObject* jguid = aJson.getObjectItem(device,"GUID");
-					aJsonObject* jvid = aJson.getObjectItem(device,"VID");
-					aJsonObject* jdid = aJson.getObjectItem(device,"DID");
-					aJsonObject* jdata = aJson.getObjectItem(device,"DATA");
+					aJsonObject* jguid = aJson.getObjectItem(device,"G");
+					aJsonObject* jvid = aJson.getObjectItem(device,"V");
+					aJsonObject* jdid = aJson.getObjectItem(device,"D");
+					aJsonObject* jdata = aJson.getObjectItem(device,"DA");
 				
 					if ((jguid != NULL) && (jguid->type == aJson_String)) 
 					{
-						strncpy(strGUID,jguid->valuestring,36);
+						strncpy(strGUID,jguid->valuestring,GUID_LEN);
 								
 						if ((jvid != NULL) && (jvid->type == aJson_Int))
 						{
@@ -179,7 +191,7 @@ boolean NinjaObjects::decodeJSON()
 								{
 									if (jdata->type == aJson_String)
 									{
-										strncpy(strDATA, jdata->valuestring,50);
+										strncpy(strDATA, jdata->valuestring,DATA_LEN);
 										IsJSONValid=true;
 										IsDATAString=true;
 									}
@@ -246,14 +258,39 @@ void NinjaObjects::doReactors()
 			{
 				switch (intDID)
 				{
-					case 10:		// On Board RGB Led
+					case 1000:		// On Board RGB Led
 					{
 						long colorVal = strtol(strDATA, NULL, 16);
-						memset(strDATA,0, 50);
+						memset(strDATA,0, DATA_LEN);
     				analogWrite(RED_LED_PIN, 255-int((colorVal&0xff0000)>>16) );
     				analogWrite(GREEN_LED_PIN, 255-int((colorVal&0x00ff00)>>8) );
     				analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );									
 						break;
+					}
+					
+					case 1001:
+					{
+						byte portPIN = atoi(strGUID);
+						switch (portPIN)
+						{
+							case 1:
+								mySwitch.enableTransmit(IO_PIN_P1_1);
+								break;
+							case 2:
+								mySwitch.enableTransmit(IO_PIN_P2_1);
+								break;
+							case 3:
+								mySwitch.enableTransmit(IO_PIN_P3_1);
+								break;
+							
+							default:
+								break;
+						}
+						mySwitch.setPulseLength(350);
+						mySwitch.send(strDATA);
+						delay(100);
+						mySwitch.send(strDATA);
+						mySwitch.disableTransmit();
 					}
 					
 					default:
@@ -376,7 +413,7 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 		aJson.addNumberToObject(port1, "V", 0);
 		aJson.addNumberToObject(port1, "D", tempID);
 		if (tempID==0)
-			aJson.addNumberToObject(port1, "DA", 0);
+			aJson.addNumberToObject(port1, "DA", getIDPinReading(ID_PIN_P1));
 		else
 			aJson.addNumberToObject(port1, "DA", Sensors.getSensorValue(1, tempID));
 
@@ -423,7 +460,7 @@ boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 		aJson.addNumberToObject(port2, "V", 0);
 		aJson.addNumberToObject(port2, "D", tempID);
 		if (tempID==0)
-			aJson.addNumberToObject(port2, "DA", 0);
+			aJson.addNumberToObject(port2, "DA", getIDPinReading(ID_PIN_P2));
 		else
 			aJson.addNumberToObject(port2, "DA", Sensors.getSensorValue(2, tempID));
 
@@ -470,7 +507,7 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 		aJson.addNumberToObject(port3, "V", 0);
 		aJson.addNumberToObject(port3, "D", tempID);
 		if (tempID==0)
-			aJson.addNumberToObject(port3, "DA", 0);
+			aJson.addNumberToObject(port3, "DA", getIDPinReading(ID_PIN_P3));
 		else
 			aJson.addNumberToObject(port3, "DA", Sensors.getSensorValue(3, tempID));
 		
