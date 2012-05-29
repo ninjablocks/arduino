@@ -118,7 +118,7 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 			errorCode = myDHT22.readData();
 			if ((errorCode==DHT_ERROR_NONE) || (errorCode==DHT_ERROR_TOOQUICK))
 			{
-				sensorValue = myDHT22.getHumidity() * 10;			// make a single decimal float to int
+				sensorValue = myDHT22.getHumidity() * 10 ;			// make a single decimal float to int
 				tempValue = myDHT22.getTemperatureC() * 10;		// make a single decimal float to int
 				return sensorValue;
 			}

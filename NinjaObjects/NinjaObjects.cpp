@@ -402,7 +402,12 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 		if (tempID==0)
 			aJson.addNumberToObject(port1, "DA", getIDPinReading(ID_PIN_P1));
 		else
-			aJson.addNumberToObject(port1, "DA", Sensors.getSensorValue(1, tempID));
+		{
+			if ((tempID==8) || (tempID==9))
+				aJson.addNumberToObject(port1, "DA", (float)Sensors.getSensorValue(1, tempID)/10);
+			else				
+				aJson.addNumberToObject(port1, "DA", Sensors.getSensorValue(1, tempID));
+		}
 
 		if (Serial.available()>0) doReactors();
 
@@ -449,7 +454,12 @@ boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 		if (tempID==0)
 			aJson.addNumberToObject(port2, "DA", getIDPinReading(ID_PIN_P2));
 		else
-			aJson.addNumberToObject(port2, "DA", Sensors.getSensorValue(2, tempID));
+		{
+			if ((tempID==8) || (tempID==9))
+				aJson.addNumberToObject(port2, "DA", (float)Sensors.getSensorValue(2, tempID)/10);
+			else				
+				aJson.addNumberToObject(port2, "DA", Sensors.getSensorValue(2, tempID));
+		}
 
 		if (Serial.available()>0) doReactors();
 
@@ -496,7 +506,12 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 		if (tempID==0)
 			aJson.addNumberToObject(port3, "DA", getIDPinReading(ID_PIN_P3));
 		else
-			aJson.addNumberToObject(port3, "DA", Sensors.getSensorValue(3, tempID));
+		{
+			if ((tempID==8) || (tempID==9))
+				aJson.addNumberToObject(port3, "DA", (float)Sensors.getSensorValue(3, tempID)/10);
+			else				
+				aJson.addNumberToObject(port3, "DA", Sensors.getSensorValue(3, tempID));
+		}
 		
 		if (Serial.available()>0) doReactors();
 
@@ -534,7 +549,7 @@ void NinjaObjects::doDHT22(byte port)
 	aJson.addStringToObject(DHT22, "G", tempBuffer);
 	aJson.addNumberToObject(DHT22, "V", 0);
 	aJson.addNumberToObject(DHT22, "D", 9);		//	DID 9 is the built in temperature for DHT22
-	aJson.addNumberToObject(DHT22, "DA", Sensors.getSensorValue(port, 9));	//	DID 9 is the built in temperature for DHT22
+	aJson.addNumberToObject(DHT22, "DA", (float)Sensors.getSensorValue(port, 9)/10);	//	DID 9 is the built in temperature for DHT22
 		
 	if (Serial.available()>0) doReactors();
  	char* string = aJson.print(root);

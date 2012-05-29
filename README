@@ -1,6 +1,17 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.31: 29th May 2012 by JP Liew
+	- JSON protocol shorten to G,V,D,DA
+	- fix RGB ID bug, should be 1000
+	- added UNKNOWN sensor to return ADC value
+	- added 433Mhz Tx module code
+	
+Version 0.2: 25th May 2012 by JP Liew
+	- restructure JSON protocol to encapsulate devices with GUID, VID, DID and DATA
+	
+Version 0.1: by Marcus Schappi www.ninjablocks.com
+
 Libraries Required
 ==================
 
