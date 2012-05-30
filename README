@@ -6,6 +6,7 @@ Version 0.31: 29th May 2012 by JP Liew
 	- fix RGB ID bug, should be 1000
 	- added UNKNOWN sensor to return ADC value
 	- added 433Mhz Tx module code
+	- changed DHT22 humidity & temp to return float value
 	
 Version 0.2: 25th May 2012 by JP Liew
 	- restructure JSON protocol to encapsulate devices with GUID, VID, DID and DATA
