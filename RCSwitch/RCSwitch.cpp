@@ -22,6 +22,11 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  
+  
+  Changes
+   - prevent multiple creation of ISR. 31st May 2012 JP Liew
+  
 */
 
 #include "RCSwitch.h"
@@ -438,6 +443,7 @@ void RCSwitch::sendSync() {
  * Enable receiving data
  */
 void RCSwitch::enableReceive(int interrupt) {
+	if (this->nReceiverInterrupt == interrupt) return;	// prevent multiple creation of ISR. 31st May 2012 JP Liew
   this->nReceiverInterrupt = interrupt;
   this->enableReceive();
 }

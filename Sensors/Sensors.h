@@ -3,6 +3,10 @@
 
 class SENSORS
 {
+	private:
+    unsigned long _lastReadTime;
+    float _lastTemperature;
+    		
 	public:
 		SENSORS();
 		int idTheType(int sensorValue, bool debug);

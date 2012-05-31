@@ -2,8 +2,14 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+31st May 2012 by JP Liew
+	- added 433Mhz Rx module code
+
 30th May 2012 by JP Liew
 	- changed DHT22 Humidity & Temp to return float value
+
+29th May 2012 by JP Liew
+	- added 433Mhz Tx module code
   
 28th May 2012 by JP Liew
 	- JSON protocol shorten to G,V,D,DA

@@ -58,7 +58,7 @@ RCSwitch mySwitch = RCSwitch();
 
 NinjaObjects::NinjaObjects()
 {
-		
+
 }
 
 int getIDPinReading(int pin)
@@ -274,8 +274,7 @@ void NinjaObjects::doReactors()
 								break;
 						}
 						mySwitch.setPulseLength(350);
-						mySwitch.send(strDATA);
-						delay(100);
+						mySwitch.setRepeatTransmit(3);
 						mySwitch.send(strDATA);
 						mySwitch.disableTransmit();
 					}
@@ -283,18 +282,12 @@ void NinjaObjects::doReactors()
 					default:
 						break;		
 				}
-					
-					
 			}
-				
 		}
-			
 		else
 		{
 			// might need to spit out JSON error to server
 			// leave this out at this stage
-				
-					
 		}
 	}	
 }
@@ -382,6 +375,12 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 	if (Serial.available()>0) doReactors();
 	// Checking Port 1
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P1),false);
+
+	if (tempID==11) 
+		mySwitch.enableReceive(1);
+	else
+		mySwitch.disableReceive();
+		
 	if (tempID==8) {IsDHT22=true; *DHT22_PORT=1;}
 	if (tempID>-1)
 	{
@@ -401,13 +400,32 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 		aJson.addNumberToObject(port1, "D", tempID);
 		if (tempID==0)
 			aJson.addNumberToObject(port1, "DA", getIDPinReading(ID_PIN_P1));
-		else
+		else if ((tempID==8) || (tempID==9))	// DHT22 Humidity or Temp
 		{
-			if ((tempID==8) || (tempID==9))
-				aJson.addNumberToObject(port1, "DA", (float)Sensors.getSensorValue(1, tempID)/10);
-			else				
-				aJson.addNumberToObject(port1, "DA", Sensors.getSensorValue(1, tempID));
+			aJson.addNumberToObject(port1, "DA", (float)Sensors.getSensorValue(1, tempID)/10);
 		}
+		else if(tempID==11)	// 433Mhz Receiver
+		{
+			if (mySwitch.available()) 
+			{
+				int value = mySwitch.getReceivedValue();
+				if (value == 0) // unknown encoding
+				{
+					aJson.addStringToObject(port1, "DA", "0");		
+				} 
+				else 
+				{
+					String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
+					recvSTR.toCharArray(strDATA, DATA_LEN);
+					aJson.addStringToObject(port1, "DA", strDATA);
+    		}
+    		mySwitch.resetAvailable();
+  		}
+  		else
+  			aJson.addStringToObject(port1, "DA", "-1");
+		}
+		else				
+			aJson.addNumberToObject(port1, "DA", Sensors.getSensorValue(1, tempID));
 
 		if (Serial.available()>0) doReactors();
 

@@ -33,7 +33,7 @@ DHT22_ERROR_t errorCode;
 
 SENSORS::SENSORS()
 {
-
+	_lastReadTime = millis()+60000;		// force TMP102 time checking to take 1st reading when started.
 }
 
 int SENSORS::idTheType(int sensorValue, bool debug)
@@ -51,6 +51,8 @@ int SENSORS::idTheType(int sensorValue, bool debug)
 			return 1001;
 	} else if (sensorValue > 365 && sensorValue < 385) { // Light (ADC Value=375)
 			return 6;
+	} else if (sensorValue > 415 && sensorValue < 435) { // 433Mhz Receiver (ADC Value=425)
+			return 11;
 	} else if (sensorValue > 511 && sensorValue < 531) { // Humidity & Temp (ADC Value=521)
 			return 8;
 	} else if (sensorValue > 782 && sensorValue < 802) { // Button (ADC value=792)
@@ -133,6 +135,10 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 			// Distance Sensor
 			sensorValue = analogRead(aInPin);
 			return sensorValue;
+		
+		case 11:
+			// 433Mhz Receiver - Not required to return anything
+			// Special handling in doPort1()
 			
 		default:		// Invalid sensor ID
 			return -1;
@@ -141,14 +147,24 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 
 float SENSORS::getBoardTemperature()
 {
-  Wire.begin();
-  Wire.requestFrom(TMP102_I2C_ADDRESS,2); 
-  byte MSB = Wire.read();
-  byte LSB = Wire.read();
+	unsigned long currentTime;
+	
+	currentTime = millis();
+	// reading the TMP102 will heat up the device and cause a higher reading
+	// slowing it down to 30sec per read.
+	if (currentTime - _lastReadTime > 30000)		
+	{
+  	Wire.begin();
+  	Wire.requestFrom(TMP102_I2C_ADDRESS,2); 
+  	byte MSB = Wire.read();
+  	byte LSB = Wire.read();
 
-  int TemperatureSum = ((MSB << 8) | LSB) >> 4; //it's a 12bit int, using two's compliment for negative
-  float celsius = TemperatureSum*0.0625;
-
-  return celsius;
+  	int TemperatureSum = ((MSB << 8) | LSB) >> 4; //it's a 12bit int, using two's compliment for negative
+  	float celsius = TemperatureSum*0.0625;
+		_lastTemperature = celsius;
+  	return celsius;
+	}
+	else
+		return _lastTemperature;
 }
 
