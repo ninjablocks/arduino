@@ -142,21 +142,17 @@ int readSerialString ()
   if(!Serial.available()) 
     return -1;
 
-	Serial.println("Serial in");    
   while (Serial.available()>0)
   {
   	if( i < recvLEN) 				
   	{
     	char c = Serial.read();
     	serInStr[i++] = c;
-			Serial.print(c);
     	delay(2);
   	}
   	else
   		break;			
   }
-  Serial.print("Serial out pos=");
-  Serial.println(i);
   return i;
 }
 
@@ -235,11 +231,8 @@ void NinjaObjects::doReactors()
   
   if (spos>0)
   {
-		Serial.println("before decode");
 		if(decodeJSON())
 		{
-			Serial.println("after decode");
-
 			Serial.println();
 			// Print out decoded Params 
 			Serial.print("GUID=");
@@ -257,9 +250,9 @@ void NinjaObjects::doReactors()
 			Serial.print("DATA=");
 			
 			if (IsDATAString)
-				Serial.print(strDATA);
+				Serial.println(strDATA);
 			else
-				Serial.print(intDATA);
+				Serial.println(intDATA);
 				
 			Serial.println(); 
 			

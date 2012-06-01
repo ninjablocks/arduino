@@ -11,7 +11,7 @@ Version 0.32: 31st May 2012 by JP Liew
 	- changed TMP102 to read in 30 sec interval, reading too quickly will cause chip to heat up, thus giving slightly higher temperature reading. 30th May 2012
 	- prevent multiple creation of ISR in enableReceive() for RCSwitch library. 31st May 2012
 	- added 433Mhz Rx module code. 31st May 2012
-	- added blinkGreenLED() when valid 433Mhz code received.	31st May 2012
+	- added blinkGreenLED() when valid 433Mhz code received. 31st May 2012
 
 Version 0.31: 29th May 2012 by JP Liew
 	- JSON protocol shorten to G,V,D,DA
