@@ -3,7 +3,7 @@ Developed by www.ninjablocks.com based on Arduino and other Open Source librarie
 
 Version 0.33: 
 	- added sound sensor support and blink RED LED if sound level exceeds 0. 1st June 2012
-	-	fix 433Mhz Tx & Rx interfering. 1st June 2012
+	- fix 433Mhz Tx & Rx interfering. 1st June 2012
 	- fixed readSerialString() stucked in while loop. 1st June 2012
 	- changed blinkGreenLED() to blinkLED() so that any LED could be blinked. 1st June 2012
 
