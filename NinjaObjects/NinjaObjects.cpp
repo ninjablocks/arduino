@@ -61,6 +61,21 @@ NinjaObjects::NinjaObjects()
 
 }
 
+void NinjaObjects::blinkLED(byte ledPin)
+{
+	int tempPORTB = PORTB;
+	int tempPORTD = PORTD;
+	
+	digitalWrite(RED_LED_PIN, HIGH);
+	digitalWrite(GREEN_LED_PIN, HIGH);
+	digitalWrite(BLUE_LED_PIN, HIGH);
+	digitalWrite(ledPin, LOW);
+	delay(80);
+	
+	PORTB = tempPORTB;
+	PORTD = tempPORTD;
+}
+
 int getIDPinReading(int pin)
 {
   analogRead(pin);
@@ -126,17 +141,22 @@ int readSerialString ()
   int i=0;
   if(!Serial.available()) 
     return -1;
-    
+
+	Serial.println("Serial in");    
   while (Serial.available()>0)
   {
-  	if( i < recvLEN) 
+  	if( i < recvLEN) 				
   	{
     	char c = Serial.read();
     	serInStr[i++] = c;
-			//Serial.print(c);
+			Serial.print(c);
     	delay(2);
   	}
+  	else
+  		break;			
   }
+  Serial.print("Serial out pos=");
+  Serial.println(i);
   return i;
 }
 
@@ -195,7 +215,7 @@ boolean NinjaObjects::decodeJSON()
 				}
 			}
 		}
-						  
+
   	aJson.deleteItem(rootObject);
  	
   	if(IsJSONValid)
@@ -215,9 +235,11 @@ void NinjaObjects::doReactors()
   
   if (spos>0)
   {
+		Serial.println("before decode");
 		if(decodeJSON())
 		{
-			  
+			Serial.println("after decode");
+
 			Serial.println();
 			// Print out decoded Params 
 			Serial.print("GUID=");
@@ -233,13 +255,13 @@ void NinjaObjects::doReactors()
 			Serial.print(",");
 
 			Serial.print("DATA=");
+			
 			if (IsDATAString)
 				Serial.print(strDATA);
 			else
 				Serial.print(intDATA);
 				
 			Serial.println(); 
-			
 			
 			if(intVID==0)  // VID 0 is reserved for Ninja Blocks
 			{
@@ -274,7 +296,7 @@ void NinjaObjects::doReactors()
 								break;
 						}
 						mySwitch.setPulseLength(350);
-						mySwitch.setRepeatTransmit(3);
+						mySwitch.setRepeatTransmit(10);
 						mySwitch.send(strDATA);
 						mySwitch.disableTransmit();
 					}
@@ -415,6 +437,8 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 				} 
 				else 
 				{
+					// Blink Green LED to show data valid
+					blinkLED(GREEN_LED_PIN);
 					String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
 					recvSTR.toCharArray(strDATA, DATA_LEN);
 					aJson.addStringToObject(port1, "DA", strDATA);

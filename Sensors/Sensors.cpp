@@ -26,10 +26,13 @@
 #include <Sensors.h>
 #include <Wire.h>
 #include <DHT22.h>
+#include <NinjaObjects.h>
 
 SENSORS Sensors;
 DHT22 myDHT22 (14);
 DHT22_ERROR_t errorCode;
+
+//extern NinjaObjects nOBJECTS;
 
 SENSORS::SENSORS()
 {
@@ -55,6 +58,8 @@ int SENSORS::idTheType(int sensorValue, bool debug)
 			return 11;
 	} else if (sensorValue > 511 && sensorValue < 531) { // Humidity & Temp (ADC Value=521)
 			return 8;
+	} else if (sensorValue > 559 && sensorValue < 579) { // Sound Sensor (ADC Value=569)
+			return 12;
 	} else if (sensorValue > 782 && sensorValue < 802) { // Button (ADC value=792)
 			return 5;
 	} else if (sensorValue > 1010) { // Nothing
@@ -139,7 +144,13 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 11:
 			// 433Mhz Receiver - Not required to return anything
 			// Special handling in doPort1()
+			return -1;
 			
+		case 12:
+			sensorValue = analogRead(aInPin);
+			if (sensorValue>0) nOBJECTS.blinkLED(RED_LED_PIN);
+			return sensorValue;
+						
 		default:		// Invalid sensor ID
 			return -1;
 	}

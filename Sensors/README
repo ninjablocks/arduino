@@ -1,6 +1,10 @@
 Sensors.cpp - Ninja Sensors library
   
 Developed by Ninja Blocks
+
+1st June 2012 by JP Liew
+	- added sound sensor ID
+	- added RED LED blink if sound level exceeds 0
     
 30th May 2012 by JP Liew
 	- changed TMP102 to read in 30 sec interval, reading too quick will cause chip to heat up.

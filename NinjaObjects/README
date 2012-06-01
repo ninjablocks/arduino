@@ -2,8 +2,13 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+1st June 2012 by JP Liew
+	- fixed readSerialString() stucked in while loop
+	- changed blinkGreenLED() to blinkLED() so that any LED could be blinked
+
 31st May 2012 by JP Liew
-	- added 433Mhz Rx module code
+	- added 433Mhz Rx module code.  NOTE: Receiver only works on PORT 1, utilising INT1 of ATMEGA328.
+	- added blinkGreenLED() when valid 433Mhz code received.
 
 30th May 2012 by JP Liew
 	- changed DHT22 Humidity & Temp to return float value
@@ -13,8 +18,8 @@ Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduin
   
 28th May 2012 by JP Liew
 	- JSON protocol shorten to G,V,D,DA
-	- fix RGB ID bug, should be 1000
-	- return ID PIN Value if sensor UNKNOWN
+	- fixed RGB ID bug, should be 1000
+	- added return ID PIN Value if sensor UNKNOWN
 		
 25th May 2012 by JP Liew
 	- restructure JSON protocol to encapsulate devices with GUID, VID, DID and DATA

@@ -38,5 +38,4 @@
 #define IO_PIN_P3_1		16
 #define IO_PIN_P3_3		6
 
-
 #endif

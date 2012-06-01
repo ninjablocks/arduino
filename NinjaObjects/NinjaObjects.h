@@ -36,6 +36,7 @@ class NinjaObjects {
 		boolean doPort2(byte* port);
 		boolean doPort3(byte* port);
 		void doDHT22(byte port);
+		void blinkLED(byte ledPin);
 };
 
 extern NinjaObjects nOBJECTS;

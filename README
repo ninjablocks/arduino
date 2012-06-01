@@ -1,12 +1,17 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.33: 
+	- added sound sensor support and blink RED LED if sound level exceeds 0. 1st June 2012
+	-	fix 433Mhz Tx & Rx interfering. 1st June 2012
+	- fixed readSerialString() stucked in while loop. 1st June 2012
+	- changed blinkGreenLED() to blinkLED() so that any LED could be blinked. 1st June 2012
+
 Version 0.32: 31st May 2012 by JP Liew
-	- changed TMP102 to read in 30 sec interval, reading too quickly will cause chip to heat up.
-	thus giving slightly higher temperature reading. 30th May 2012
+	- changed TMP102 to read in 30 sec interval, reading too quickly will cause chip to heat up, thus giving slightly higher temperature reading. 30th May 2012
 	- prevent multiple creation of ISR in enableReceive() for RCSwitch library. 31st May 2012
 	- added 433Mhz Rx module code. 31st May 2012
-	
+	- added blinkGreenLED() when valid 433Mhz code received.	31st May 2012
 
 Version 0.31: 29th May 2012 by JP Liew
 	- JSON protocol shorten to G,V,D,DA
