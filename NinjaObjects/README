@@ -5,6 +5,7 @@ Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduin
 15th June 2012 by JP Liew
 	- added doOnBoardRGB() to return RGB status
 	- added doJSONResponse() to ack actuator messages
+	- added doJSONError(int) to report error
 	
 1st June 2012 by JP Liew
 	- fixed readSerialString() stucked in while loop
