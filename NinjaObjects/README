@@ -2,6 +2,10 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+15th June 2012 by JP Liew
+	- added doOnBoardRGB() to return RGB status
+	- added doJSONResponse() to ack actuator messages
+	
 1st June 2012 by JP Liew
 	- fixed readSerialString() stucked in while loop
 	- changed blinkGreenLED() to blinkLED() so that any LED could be blinked

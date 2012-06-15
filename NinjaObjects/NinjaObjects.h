@@ -32,6 +32,9 @@ class NinjaObjects {
 		boolean decodeJSON();
 		void doOnBoardTemp();
 		void doOnBoardAccelerometer();
+		void doOnBoardRGB();
+		void doJSONResponse();
+		void doJSONError(int errorCode);
 		boolean doPort1(byte* port);
 		boolean doPort2(byte* port);
 		boolean doPort3(byte* port);
