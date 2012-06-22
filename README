@@ -1,6 +1,9 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.34.1: 22th June 2012 by JP Liew
+	- added blinkLED() for push button triggered.  22nd June 2012
+	
 Version 0.34: 15th June 2012 by JP Liew
 	- added doOnBoardRGB() to report status of RGB Led.  15th June 2012
 	- added doJSONResponse() to ack server messages. 15th June 2012

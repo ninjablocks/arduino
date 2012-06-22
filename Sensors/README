@@ -2,6 +2,9 @@ Sensors.cpp - Ninja Sensors library
   
 Developed by Ninja Blocks
 
+22nd June 2012 by JP Liew
+	- added blinkLED() for push button triggered
+
 1st June 2012 by JP Liew
 	- added sound sensor ID
 	- added RED LED blink if sound level exceeds 0

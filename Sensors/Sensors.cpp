@@ -32,7 +32,8 @@ SENSORS Sensors;
 DHT22 myDHT22 (14);
 DHT22_ERROR_t errorCode;
 
-//extern NinjaObjects nOBJECTS;
+
+extern NinjaObjects nOBJECTS;
 
 SENSORS::SENSORS()
 {
@@ -107,6 +108,8 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 5:
 			// Push Button Sensor
 			sensorValue = digitalRead(dInPin) * 1023;
+			if (sensorValue==0)
+				nOBJECTS.blinkLED(BLUE_LED_PIN);
 			return sensorValue;
 		
 		case 6:
