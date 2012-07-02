@@ -297,7 +297,42 @@ void NinjaObjects::doReactors()
 						mySwitch.disableTransmit();
     				doJSONResponse();
 						//memset(strDATA,0, DATA_LEN);
+						break;
+					}
+					
+					case 1002:
+					{
+						byte portPIN = atoi(strGUID);
+						byte triggerPIN = -1;
+						byte triggerDATA = -1;
+						switch (portPIN)
+						{
+							case 1:
+								triggerPIN = IO_PIN_P1_1;
+								break;
+							case 2:
+								triggerPIN = IO_PIN_P2_1;
+								break;
+							case 3:
+								triggerPIN = IO_PIN_P3_1;
+								break;
+							
+							default:
+								break;											
+						}
 
+						if (IsDATAString)
+						{
+							triggerDATA = atoi(strDATA);
+						}
+						else
+						{
+							triggerDATA = intDATA;
+						}
+						
+						digitalWrite(triggerPIN, triggerDATA);
+						doJSONResponse();	
+						break;
 					}
 					
 					default:

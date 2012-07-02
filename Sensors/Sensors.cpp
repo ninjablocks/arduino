@@ -61,6 +61,8 @@ int SENSORS::idTheType(int sensorValue, bool debug)
 			return 8;
 	} else if (sensorValue > 559 && sensorValue < 579) { // Sound Sensor (ADC Value=569)
 			return 12;
+	} else if (sensorValue > 654 && sensorValue < 674) { // Relay Breakoutboard (ADC Value=664)
+			return 1002;
 	} else if (sensorValue > 782 && sensorValue < 802) { // Button (ADC value=792)
 			return 5;
 	} else if (sensorValue > 1010) { // Nothing
@@ -120,6 +122,7 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 7:
 			// PIR Sensor
 			sensorValue = digitalRead(dInPin) * 1023;
+			if (sensorValue>0) nOBJECTS.blinkLED(GREEN_LED_PIN);
 			return sensorValue;
 
 		case 8:
@@ -152,6 +155,18 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 12:
 			sensorValue = analogRead(aInPin);
 			if (sensorValue>0) nOBJECTS.blinkLED(RED_LED_PIN);
+			return sensorValue;
+
+		case 1002:
+			// Relay Breakout
+		
+			if (port == 1) 
+				sensorValue = bitRead(PORTC, 0);
+			else if (port == 2)
+				sensorValue = bitRead(PORTC, 1);
+			else if (port == 3)
+				sensorValue = bitRead(PORTC, 2);
+			
 			return sensorValue;
 						
 		default:		// Invalid sensor ID

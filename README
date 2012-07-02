@@ -1,6 +1,10 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.35: 2nd July 2012 by JP Liew
+	- added handling for Relay Breakout board. 2nd July 2012
+	- added reading ID for Relay Breakout board. 2nd July 2012
+
 Version 0.34.1: 22th June 2012 by JP Liew
 	- added blinkLED() for push button triggered.  22nd June 2012
 	

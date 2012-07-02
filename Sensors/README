@@ -2,6 +2,9 @@ Sensors.cpp - Ninja Sensors library
   
 Developed by Ninja Blocks
 
+2nd July 2012 by JP Liew
+	- added reading ID for Relay Breakout board
+
 22nd June 2012 by JP Liew
 	- added blinkLED() for push button triggered
 

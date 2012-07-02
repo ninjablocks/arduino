@@ -2,6 +2,9 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+2nd July 2012 by JP Liew
+	- added handling for Relay Breakout board
+	
 15th June 2012 by JP Liew
 	- added doOnBoardRGB() to return RGB status
 	- added doJSONResponse() to ack actuator messages
