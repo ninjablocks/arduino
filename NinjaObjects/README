@@ -2,6 +2,11 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+5th July 2012 by JP Liew
+	- added Device ID 1003, DATA="VNO" for cape to report software version
+	- disabled responding to DID 1001 with the new all in one TX & RX board
+	- changed 433 transmit from 5 times to 8 times
+
 2nd July 2012 by JP Liew
 	- added handling for Relay Breakout board
 	

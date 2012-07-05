@@ -1,6 +1,12 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.36: 5th July 2012 by JP Liew
+	- fixed Relay digitalWrite() not in OUTPUT mode
+	- added Device ID 1003, DATA="VNO" for cape to report software version
+	- disabled responding to DID 1001 with the new all in one TX & RX board
+	- changed 433 transmit from 5 times to 8 times	
+
 Version 0.35: 2nd July 2012 by JP Liew
 	- added handling for Relay Breakout board. 2nd July 2012
 	- added reading ID for Relay Breakout board. 2nd July 2012

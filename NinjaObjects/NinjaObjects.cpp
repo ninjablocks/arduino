@@ -273,7 +273,7 @@ void NinjaObjects::doReactors()
 						break;
 					}
 					
-					case 1001:
+					case 11:					// change this ID to 11 to accomodate all in one TX & RX board.
 					{
 						byte portPIN = atoi(strGUID);
 						switch (portPIN)
@@ -292,7 +292,7 @@ void NinjaObjects::doReactors()
 								break;
 						}
 						mySwitch.setPulseLength(350);
-						mySwitch.setRepeatTransmit(5);		// watch this, 3-5 repeats will be enough
+						mySwitch.setRepeatTransmit(8);		// watch this, 3-8 repeats will be enough 
 						mySwitch.send(strDATA);
 						mySwitch.disableTransmit();
     				doJSONResponse();
@@ -333,6 +333,18 @@ void NinjaObjects::doReactors()
 						digitalWrite(triggerPIN, triggerDATA);
 						doJSONResponse();	
 						break;
+					}
+					
+					case 1003:
+					{
+						if (strcmp(strDATA,"VNO")==0)
+						{
+							strcpy(strDATA,"036");		// need to find a way to generate new version number in sync with git tag
+							doJSONResponse();
+						}
+						else
+							doJSONError(4);
+						break;	
 					}
 					
 					default:

@@ -104,11 +104,13 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 	{
 		case 0:
 			// UNKNOWN Sensor, pass in the ADC Value
+			pinMode(aInPin, INPUT);
 			sensorValue = analogRead(aInPin);
 			return sensorValue;
 			
 		case 5:
 			// Push Button Sensor
+			pinMode(dInPin, INPUT);
 			sensorValue = digitalRead(dInPin) * 1023;
 			if (sensorValue==0)
 				nOBJECTS.blinkLED(BLUE_LED_PIN);
@@ -116,11 +118,13 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		
 		case 6:
 			// Light Sensor
+			pinMode(aInPin, INPUT);
 			sensorValue = analogRead(aInPin);
 			return sensorValue;
 
 		case 7:
 			// PIR Sensor
+			pinMode(dInPin, INPUT);
 			sensorValue = digitalRead(dInPin) * 1023;
 			if (sensorValue>0) nOBJECTS.blinkLED(GREEN_LED_PIN);
 			return sensorValue;
@@ -144,6 +148,7 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		
 		case 10:
 			// Distance Sensor
+			pinMode(aInPin, INPUT);
 			sensorValue = analogRead(aInPin);
 			return sensorValue;
 		
@@ -153,13 +158,14 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 			return -1;
 			
 		case 12:
+			pinMode(aInPin, INPUT);
 			sensorValue = analogRead(aInPin);
 			if (sensorValue>0) nOBJECTS.blinkLED(RED_LED_PIN);
 			return sensorValue;
 
 		case 1002:
 			// Relay Breakout
-		
+			pinMode(dInPin, OUTPUT);
 			if (port == 1) 
 				sensorValue = bitRead(PORTC, 0);
 			else if (port == 2)
