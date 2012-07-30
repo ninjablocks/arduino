@@ -1,6 +1,10 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.37: 30th July 2012 by JP Liew
+	- fixed RCSwitch to add leading zeros when sending JSON data in binary
+	- fixed GREEN LED blink on GREEN when receiving 433 data
+	
 Version 0.36: 5th July 2012 by JP Liew
 	- fixed Relay digitalWrite() not in OUTPUT mode
 	- added Device ID 1003, DATA="VNO" for cape to report software version

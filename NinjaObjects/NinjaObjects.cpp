@@ -32,7 +32,7 @@
 
 #define recvLEN 	128        // this is really bad, will need to work out dynamic length
 #define GUID_LEN	36
-#define DATA_LEN	50
+#define DATA_LEN	64
 
 struct __freelist {
   size_t sz;
@@ -71,6 +71,10 @@ void NinjaObjects::blinkLED(byte ledPin)
 	digitalWrite(BLUE_LED_PIN, HIGH);
 	digitalWrite(ledPin, LOW);
 	delay(80);
+	digitalWrite(RED_LED_PIN, HIGH);
+	digitalWrite(GREEN_LED_PIN, HIGH);
+	digitalWrite(BLUE_LED_PIN, HIGH);
+	delay(50);
 	
 	PORTB = tempPORTB;
 	PORTD = tempPORTD;
@@ -83,6 +87,27 @@ int getIDPinReading(int pin)
   int val = analogRead(pin);
   delay(20);
   return val;
+}
+
+void dec2binWzerofill(char* bin, unsigned long Dec, unsigned int bitLength){
+//  static char bin[64]; 
+  unsigned int i=0;
+
+  while (Dec > 0) {
+    bin[32+i++] = (Dec & 1 > 0) ? '1' : '0';
+    Dec = Dec >> 1;
+  }
+
+  for (unsigned int j = 0; j< bitLength; j++) {
+    if (j >= bitLength - i) {
+      bin[j] = bin[ 31 + i - (j - (bitLength - i)) ];
+    }else {
+      bin[j] = '0';
+    }
+  }
+  bin[bitLength] = '\0';
+  
+  return;
 }
 
 // given a PROGMEM string, use Serial.print() to send it out
@@ -339,7 +364,7 @@ void NinjaObjects::doReactors()
 					{
 						if (strcmp(strDATA,"VNO")==0)
 						{
-							strcpy(strDATA,"036");		// need to find a way to generate new version number in sync with git tag
+							strcpy(strDATA,"037");		// need to find a way to generate new version number in sync with git tag
 							doJSONResponse();
 						}
 						else
@@ -609,9 +634,16 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 				{
 					// Blink Green LED to show data valid
 					blinkLED(GREEN_LED_PIN);
-					String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
-					recvSTR.toCharArray(strDATA, DATA_LEN);
-					aJson.addStringToObject(port1, "DA", strDATA);
+					//String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
+					
+					//recvSTR.toCharArray(strDATA, DATA_LEN);
+					if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
+						aJson.addStringToObject(port1, "DA", "0");		
+					else
+					{
+						dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
+						aJson.addStringToObject(port1, "DA", strDATA);
+					}
     		}
     		mySwitch.resetAvailable();
   		}
