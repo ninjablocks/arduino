@@ -2,6 +2,13 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+14th August 2012 by JP Liew
+	- added doJSONData(...) to allow easier calling of the library
+	- clean up many precompile warnings
+	- added V11 V12 preprocessor directives for version selection
+	- changed doOnBoardRGB() to cater PWM for V12 board
+	- added doOnBoard433() for V12 board
+
 30th July 2012 by JP Liew
 	- fixed RCSwitch to add leading zeros when sending JSON data in binary
 	- fixed GREEN LED blink on GREEN when receiving 433 data

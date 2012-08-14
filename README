@@ -1,6 +1,15 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.38: MAJOR code changes to accomodate V11 and V12 board, 14th August 2012 by JP Liew
+	- added doJSONData(...) to allow easier calling of the library
+	- clean up many precompile warnings
+	- added V11 V12 preprocessor directives for version selection
+	- disabled getBoardTemperature() for V12 board
+	- disabled doOnBoardAccelerometer() for V12 board
+	- changed doOnBoardRGB() to cater PWM for V12 board
+	- added doOnBoard433() for V12 board
+
 Version 0.37: 30th July 2012 by JP Liew
 	- fixed RCSwitch to add leading zeros when sending JSON data in binary
 	- fixed GREEN LED blink on GREEN when receiving 433 data

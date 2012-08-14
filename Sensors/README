@@ -2,6 +2,9 @@ Sensors.cpp - Ninja Sensors library
   
 Developed by Ninja Blocks
 
+14th August 2012 by JP Liew
+	- disabled getBoardTemperature() for V12
+
 5th July 2012 by JP Liew
 	- fixed Relay digitalWrite() not in OUTPUT mode
 

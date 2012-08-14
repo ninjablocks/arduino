@@ -52,9 +52,13 @@ int intDID=0;
 char strDATA[DATA_LEN];
 int intDATA=0;
 boolean IsDATAString=0;
-
 RCSwitch mySwitch = RCSwitch();
 
+#ifdef V12
+byte RED_LED_VALUE =0;
+byte GREEN_LED_VALUE=0;
+byte BLUE_LED_VALUE=0;
+#endif
 
 NinjaObjects::NinjaObjects()
 {
@@ -70,11 +74,12 @@ void NinjaObjects::blinkLED(byte ledPin)
 	digitalWrite(GREEN_LED_PIN, HIGH);
 	digitalWrite(BLUE_LED_PIN, HIGH);
 	digitalWrite(ledPin, LOW);
-	delay(80);
+	delay(60);
+	
 	digitalWrite(RED_LED_PIN, HIGH);
 	digitalWrite(GREEN_LED_PIN, HIGH);
 	digitalWrite(BLUE_LED_PIN, HIGH);
-	delay(50);
+	delay(20);
 	
 	PORTB = tempPORTB;
 	PORTD = tempPORTD;
@@ -94,7 +99,7 @@ void dec2binWzerofill(char* bin, unsigned long Dec, unsigned int bitLength){
   unsigned int i=0;
 
   while (Dec > 0) {
-    bin[32+i++] = (Dec & 1 > 0) ? '1' : '0';
+    bin[32+i++] = ((Dec & 1) > 0) ? '1' : '0';
     Dec = Dec >> 1;
   }
 
@@ -290,9 +295,24 @@ void NinjaObjects::doReactors()
 					case 1000:		// On Board RGB Led
 					{
 						long colorVal = strtol(strDATA, NULL, 16);
+
+#ifdef V11
     				analogWrite(RED_LED_PIN, 255-int((colorVal&0xff0000)>>16) );
     				analogWrite(GREEN_LED_PIN, 255-int((colorVal&0x00ff00)>>8) );
     				analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );			
+#endif
+
+#ifdef V12
+						RED_LED_VALUE = int((colorVal&0xff0000)>>16);
+						analogWrite(RED_LED_PIN, 255-RED_LED_VALUE );
+    				
+						GREEN_LED_VALUE=int((colorVal&0x00ff00)>>8);
+						analogWrite(GREEN_LED_PIN, 255-GREEN_LED_VALUE);
+    				
+						BLUE_LED_VALUE = int((colorVal&0x0000ff)>>0);
+						analogWrite(BLUE_LED_PIN, 255-BLUE_LED_VALUE);	
+#endif    				    				
+    				
     				doJSONResponse();
 //						memset(strDATA,0, DATA_LEN);
 						break;
@@ -314,6 +334,9 @@ void NinjaObjects::doReactors()
 								break;
 							
 							default:
+								#ifdef V12
+								mySwitch.enableTransmit(TX433_PIN);
+								#endif
 								break;
 						}
 						mySwitch.setPulseLength(350);
@@ -364,7 +387,16 @@ void NinjaObjects::doReactors()
 					{
 						if (strcmp(strDATA,"VNO")==0)
 						{
-							strcpy(strDATA,"037");		// need to find a way to generate new version number in sync with git tag
+				
+#ifdef V11							
+							strcpy(strDATA,"V11_");		// need to find a way to generate new version number in sync with git tag
+#endif
+
+#ifdef V12
+							strcpy(strDATA,"V12_");		// need to find a way to generate new version number in sync with git tag
+#endif
+
+							strcat(strDATA,VERSION_NO);
 							doJSONResponse();
 						}
 						else
@@ -386,10 +418,7 @@ void NinjaObjects::doReactors()
 		}
 		else
 		{
-			// might need to spit out JSON error to server
-			// leave this out at this stage
 			doJSONError(1);
-			
 		}
 	}	
 }
@@ -453,10 +482,9 @@ void NinjaObjects::doJSONResponse()
   free(string);
 }
 
-void NinjaObjects::doOnBoardRGB()
+void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString)
 {
-	char tempSTR[7];
-	
+  int tempDATA=0;
   aJsonObject* root = aJson.createObject();
   if (root == NULL)
   {
@@ -464,20 +492,101 @@ void NinjaObjects::doOnBoardRGB()
     return;
   }
 
-	if (Serial.available()>0) doReactors();
-		
 	aJsonObject* device = aJson.createArray();
 	aJson.addItemToObject(root,"DEVICE", device);
 	
-	if (Serial.available()>0) doReactors();
-	// On board RGB object
 	aJsonObject* guid1 = aJson.createObject();
 	aJson.addItemToArray(device, guid1);
-	aJson.addStringToObject(guid1, "G", "0");
-	aJson.addNumberToObject(guid1, "V", 0);
-	aJson.addNumberToObject(guid1, "D", 1000);
-	// Get RGB Value
+	aJson.addStringToObject(guid1, "G", strGUID);
+	aJson.addNumberToObject(guid1, "V", intVID);
+	aJson.addNumberToObject(guid1, "D", intDID);
+	
+	if(IsString)
+		aJson.addStringToObject(guid1, "DA", strDATA);
+	else
+	{
+		tempDATA = (int)numDATA;
+		if (numDATA>tempDATA)
+			aJson.addNumberToObject(guid1, "DA", numDATA);
+		else
+			aJson.addNumberToObject(guid1, "DA", tempDATA);
+	}
 
+  char* string = aJson.print(root);
+  if (string != NULL) 
+  {
+    Serial.println(string);
+  } 
+
+  aJson.deleteItem(root);
+  free(string);
+}
+
+#ifdef V12
+void NinjaObjects::doOnBoardRGB()
+{
+	char tempSTR[7];
+	char tempColor[3];
+	
+	if (Serial.available()>0) doReactors();
+	// Get RGB Value
+	sprintf(tempColor,"%02X", RED_LED_VALUE);
+	strcpy(tempSTR,tempColor);
+
+	sprintf(tempColor,"%02X", GREEN_LED_VALUE);
+	strcat(tempSTR,tempColor);
+		
+	sprintf(tempColor,"%02X", BLUE_LED_VALUE);
+	strcat(tempSTR,tempColor);
+
+	doJSONData("0", 0, 1000, tempSTR, 0, true);
+	if (Serial.available()>0) doReactors();
+  
+}
+
+void NinjaObjects::doOnBoard433(void)
+{
+	int tempID;
+	tempID=11;
+
+	mySwitch.enableReceive(RX433_INT);
+
+	if (mySwitch.available()) 
+	{
+		int value = mySwitch.getReceivedValue();
+		if (value == 0) // unknown encoding
+		{
+			doJSONData("0", 0, tempID, "0", 0, true);
+		} 
+		else 
+		{
+			// Blink Green LED to show data valid
+			blinkLED(GREEN_LED_PIN);
+			if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
+				doJSONData("0", 0, tempID, "0", 0, true);
+			else
+			{
+				dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
+				doJSONData("0", 0, tempID, strDATA, 0, true);
+			}
+  	}
+  	mySwitch.resetAvailable();
+  }
+  else
+  	doJSONData("0", 0, tempID, "-1", 0, true);
+
+	if (Serial.available()>0) doReactors();
+}
+#endif
+
+#ifdef V11
+void NinjaObjects::doOnBoardRGB()
+{
+	char tempSTR[7];
+	
+	if (Serial.available()>0) doReactors();
+
+	// Get RGB Value
 	int tempPORTB = PORTB & 0x03;		// Green & Blue
 	int tempPORTD = PORTD & 0x80;		// Red
 	
@@ -496,96 +605,37 @@ void NinjaObjects::doOnBoardRGB()
 	else
 		strcat(tempSTR,"FF");
 
-	aJson.addStringToObject(guid1, "DA", tempSTR);
+	doJSONData("0", 0,1000, tempSTR,0,true);
 
 	if (Serial.available()>0) doReactors();
-  char* string = aJson.print(root);
-  if (string != NULL) 
-  {
-    Serial.println(string);
-  } 
-
-  aJson.deleteItem(root);
-  free(string);
 }
 
 void NinjaObjects::doOnBoardTemp()
 {
-  aJsonObject* root = aJson.createObject();
-  if (root == NULL)
-  {
-  	Serial.println("error root"); 
-    return;
-  }
-
 	if (Serial.available()>0) doReactors();
-		
-	aJsonObject* device = aJson.createArray();
-	aJson.addItemToObject(root,"DEVICE", device);
-	
+	doJSONData("0", 0, 1, NULL, Sensors.getBoardTemperature(), false);
 	if (Serial.available()>0) doReactors();
-	// On board temperature object
-	aJsonObject* guid1 = aJson.createObject();
-	aJson.addItemToArray(device, guid1);
-	aJson.addStringToObject(guid1, "G", "0");
-	aJson.addNumberToObject(guid1, "V", 0);
-	aJson.addNumberToObject(guid1, "D", 1);
-	aJson.addNumberToObject(guid1, "DA", Sensors.getBoardTemperature());
-
-	if (Serial.available()>0) doReactors();
-  char* string = aJson.print(root);
-  if (string != NULL) 
-  {
-    Serial.println(string);
-  } 
-
-  aJson.deleteItem(root);
-  free(string);
 }
 
 void NinjaObjects::doOnBoardAccelerometer()
 {
 	char tempBuffer[15];
-	
-  aJsonObject* root = aJson.createObject();
-  if (root == NULL)
-  {
-  	Serial.println("error root"); 
-    return;
-  }
-
-	if (Serial.available()>0) doReactors();
-	aJsonObject* device = aJson.createArray();
-	aJson.addItemToObject(root,"DEVICE", device);
-
-	// On board accelerometer Object
-	aJsonObject* guid2 = aJson.createObject();
-	aJson.addItemToArray(device, guid2);
-	aJson.addStringToObject(guid2, "G", "0");
-	aJson.addNumberToObject(guid2, "V", 0);
-	aJson.addNumberToObject(guid2, "D", 2);
 	int x = 0, y = 0, z = 0;
+	
+	if (Serial.available()>0) doReactors();
+
 	MMA.getAccXYZ(&x, &y, &z, true); //get accelerometer readings in normal mode (hi res).
 	sprintf(tempBuffer, "%d,%d,%d", x,y,z);
-	aJson.addStringToObject(guid2, "DA", tempBuffer);
-	
-	
-	if (Serial.available()>0) doReactors();
-		
- 	char* string = aJson.print(root);
-  if (string != NULL) 
-  {
-    Serial.println(string);
-  } 
 
-  aJson.deleteItem(root);
-  free(string);
+	doJSONData("0", 0, 2, tempBuffer, 0, true);
+	if (Serial.available()>0) doReactors();
 }
+#endif
 
 boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 {
 	int tempID=0;
-	char tempBuffer[15];
+	
 	boolean IsDHT22=false;
 	*DHT22_PORT=0;
 		
@@ -593,34 +643,24 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 	// Checking Port 1
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P1),false);
 
+#ifdef V11
 	if (tempID==11) 
-		mySwitch.enableReceive(1);
+		mySwitch.enableReceive(RX433_INT);
 	else
 		mySwitch.disableReceive();
+#endif
 		
 	if (tempID==8) {IsDHT22=true; *DHT22_PORT=1;}
 	if (tempID>-1)
 	{
-  	aJsonObject* root = aJson.createObject();
-  	if (root == NULL)
-  	{
-  		Serial.println("error root"); 
-    	return false;
-  	}
-
-		aJsonObject* device = aJson.createArray();
-		aJson.addItemToObject(root,"DEVICE", device);
-		aJsonObject* port1 = aJson.createObject();
-		aJson.addItemToArray(device, port1);
-		aJson.addStringToObject(port1, "G", "1");
-		aJson.addNumberToObject(port1, "V", 0);
-		aJson.addNumberToObject(port1, "D", tempID);
 		if (tempID==0)
-			aJson.addNumberToObject(port1, "DA", getIDPinReading(ID_PIN_P1));
+			doJSONData("1", 0, tempID, NULL, getIDPinReading(ID_PIN_P1), false);
 		else if ((tempID==8) || (tempID==9))	// DHT22 Humidity or Temp
 		{
-			aJson.addNumberToObject(port1, "DA", (float)Sensors.getSensorValue(1, tempID)/10);
+			doJSONData("1", 0, tempID, NULL, (float)Sensors.getSensorValue(1, tempID)/10, false);
 		}
+		
+#ifdef V11
 		else if(tempID==11)	// 433Mhz Receiver
 		{
 			if (mySwitch.available()) 
@@ -628,50 +668,40 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 				int value = mySwitch.getReceivedValue();
 				if (value == 0) // unknown encoding
 				{
-					aJson.addStringToObject(port1, "DA", "0");		
+					doJSONData("1", 0, tempID, "0", 0, true);
 				} 
 				else 
 				{
 					// Blink Green LED to show data valid
 					blinkLED(GREEN_LED_PIN);
 					//String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
-					
 					//recvSTR.toCharArray(strDATA, DATA_LEN);
 					if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
-						aJson.addStringToObject(port1, "DA", "0");		
+						doJSONData("1", 0, tempID, "0", 0, true);
 					else
 					{
 						dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
-						aJson.addStringToObject(port1, "DA", strDATA);
+						doJSONData("1", 0, tempID, strDATA,0, true);
 					}
     		}
     		mySwitch.resetAvailable();
   		}
   		else
-  			aJson.addStringToObject(port1, "DA", "-1");
+				doJSONData("1", 0, tempID, "-1", 0, true);
 		}
+#endif
+
 		else				
-			aJson.addNumberToObject(port1, "DA", Sensors.getSensorValue(1, tempID));
-
-		if (Serial.available()>0) doReactors();
-
-	  char* string = aJson.print(root);
-  	if (string != NULL) 
-  	{
-    	Serial.println(string);
-  	} 
-
-  	aJson.deleteItem(root);
-  	free(string);
-
+			doJSONData("1", 0, tempID, NULL, Sensors.getSensorValue(1, tempID), false);
 	}
+	if (Serial.available()>0) doReactors();
 	return IsDHT22;
 }
 
 boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 {
 	int tempID=0;
-	char tempBuffer[15];
+
 	boolean IsDHT22=false;
 	*DHT22_PORT=0;
 			
@@ -681,49 +711,23 @@ boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 	if (tempID==8) {IsDHT22=true; *DHT22_PORT=2;}
 	if (tempID>-1)
 	{
-  	aJsonObject* root = aJson.createObject();
-  	if (root == NULL)
-  	{
-  		Serial.println("error root"); 
-    	return false;
-  	}
-
-		aJsonObject* device = aJson.createArray();
-		aJson.addItemToObject(root,"DEVICE", device);
-		aJsonObject* port2 = aJson.createObject();
-		aJson.addItemToArray(device, port2);
-		aJson.addStringToObject(port2, "G", "2");
-		aJson.addNumberToObject(port2, "V", 0);
-		aJson.addNumberToObject(port2, "D", tempID);
 		if (tempID==0)
-			aJson.addNumberToObject(port2, "DA", getIDPinReading(ID_PIN_P2));
+			doJSONData("2", 0, tempID, NULL, getIDPinReading(ID_PIN_P2),false);
 		else
 		{
 			if ((tempID==8) || (tempID==9))
-				aJson.addNumberToObject(port2, "DA", (float)Sensors.getSensorValue(2, tempID)/10);
+				doJSONData("2", 0, tempID, NULL, (float)Sensors.getSensorValue(2, tempID)/10,false);
 			else				
-				aJson.addNumberToObject(port2, "DA", Sensors.getSensorValue(2, tempID));
+				doJSONData("2", 0, tempID, NULL, Sensors.getSensorValue(2, tempID),false);
 		}
-
-		if (Serial.available()>0) doReactors();
-
-	  char* string = aJson.print(root);
-  	if (string != NULL) 
-  	{
-    	Serial.println(string);
-  	} 
-
-  	aJson.deleteItem(root);
-  	free(string);
-
 	}
+	if (Serial.available()>0) doReactors();
 	return IsDHT22;
 }
 
 boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 {
 	int tempID=0;
-	char tempBuffer[15];
 	boolean IsDHT22=false;
 	*DHT22_PORT=0;	
 			
@@ -733,78 +737,28 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 	if (tempID==8) {IsDHT22=true; *DHT22_PORT=3;}
 	if (tempID>-1)
 	{
-  	aJsonObject* root = aJson.createObject();
-  	if (root == NULL)
-  	{
-  		Serial.println("error root"); 
-    	return false;
-  	}
-
-		aJsonObject* device = aJson.createArray();
-		aJson.addItemToObject(root,"DEVICE", device);  
-		aJsonObject* port3 = aJson.createObject();
-		aJson.addItemToArray(device, port3);
-		aJson.addStringToObject(port3, "G", "3");
-		aJson.addNumberToObject(port3, "V", 0);
-		aJson.addNumberToObject(port3, "D", tempID);
 		if (tempID==0)
-			aJson.addNumberToObject(port3, "DA", getIDPinReading(ID_PIN_P3));
+			doJSONData("3", 0, tempID, NULL, getIDPinReading(ID_PIN_P3), false);
 		else
 		{
 			if ((tempID==8) || (tempID==9))
-				aJson.addNumberToObject(port3, "DA", (float)Sensors.getSensorValue(3, tempID)/10);
-			else				
-				aJson.addNumberToObject(port3, "DA", Sensors.getSensorValue(3, tempID));
+				doJSONData("3", 0, tempID, NULL, (float)Sensors.getSensorValue(3, tempID)/10, false);
+			else
+				doJSONData("3", 0, tempID, NULL, Sensors.getSensorValue(3, tempID), false);								
 		}
-		
-		if (Serial.available()>0) doReactors();
-
-	  char* string = aJson.print(root);
-  	if (string != NULL) 
-  	{
-    	Serial.println(string);
-  	} 
-
-  	aJson.deleteItem(root);
-  	free(string);
 
 	}
+	if (Serial.available()>0) doReactors();
 	return IsDHT22;
 }
 
 void NinjaObjects::doDHT22(byte port)
 {
-	int tempID=0;
 	char tempBuffer[15];
-	
- 	aJsonObject* root = aJson.createObject();
- 	if (root == NULL)
- 	{
- 		Serial.println("error root"); 
-   	return;
- 	}
 	if (Serial.available()>0) doReactors();
-	aJsonObject* device = aJson.createArray();
-	aJson.addItemToObject(root,"DEVICE", device);  
-
-	aJsonObject* DHT22 = aJson.createObject();
-	aJson.addItemToArray(device, DHT22);
 	sprintf(tempBuffer, "%d", port);
-	aJson.addStringToObject(DHT22, "G", tempBuffer);
-	aJson.addNumberToObject(DHT22, "V", 0);
-	aJson.addNumberToObject(DHT22, "D", 9);		//	DID 9 is the built in temperature for DHT22
-	aJson.addNumberToObject(DHT22, "DA", (float)Sensors.getSensorValue(port, 9)/10);	//	DID 9 is the built in temperature for DHT22
-		
+	doJSONData(tempBuffer, 0,9,NULL,(float)Sensors.getSensorValue(port, 9)/10, false);
 	if (Serial.available()>0) doReactors();
- 	char* string = aJson.print(root);
- 	if (string != NULL) 
- 	{
-   	Serial.println(string);
- 	} 
-
- 	aJson.deleteItem(root);
- 	free(string);
-
 }
 
 void NinjaObjects::sendObjects() 
@@ -812,10 +766,17 @@ void NinjaObjects::sendObjects()
 	boolean IsDHT22=false;
 	byte DHT22_PORT=0;
 
-	doOnBoardTemp();
-	doOnBoardAccelerometer();
 	doOnBoardRGB();
 	
+#ifdef V11
+	doOnBoardTemp();
+	doOnBoardAccelerometer();
+#endif
+
+#ifdef V12
+	doOnBoard433();
+#endif
+
 	IsDHT22=doPort1(&DHT22_PORT);
 	if (IsDHT22) doDHT22(DHT22_PORT);
 	IsDHT22=doPort2(&DHT22_PORT);

@@ -1,6 +1,6 @@
 #ifndef NinjaObjects_h
 #define NinjaObjects_h
-
+/*
 const prog_char PROGMEM RETRIEVING_NAME[] ="Retrieving name\n";
 const prog_char PROGMEM ERROR_RETRIEVING_NAME[] ="Error retrieving name\n";
 const prog_char PROGMEM SUCCESSFULLY_RETRIEVED_NAME[] ="Successfully retrieved Name:";
@@ -23,6 +23,7 @@ const prog_char PROGMEM ADDING_NAME_STRING[] = "Adding name to the object\n";
 const prog_char PROGMEM OBJECT_CREATION_FAILED_STRING[] = "Failed to create the object\n";
 const prog_char PROGMEM OBJECT_CREATE_STRING[] = "Created a Object\n";
 const prog_char PROGMEM HELLO_STRING[] = "********************\nTesting aJson\n*****************\n";
+*/
 
 class NinjaObjects {
 	public:
@@ -35,21 +36,17 @@ class NinjaObjects {
 		void doOnBoardRGB();
 		void doJSONResponse();
 		void doJSONError(int errorCode);
+		void doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString);
 		boolean doPort1(byte* port);
 		boolean doPort2(byte* port);
 		boolean doPort3(byte* port);
 		void doDHT22(byte port);
 		void blinkLED(byte ledPin);
+#ifdef V12
+		void doOnBoard433(void)		;
+#endif
+
 };
 
 extern NinjaObjects nOBJECTS;
-
-//extern const byte RED_LED_PIN;
-//extern const byte GREEN_LED_PIN;
-//extern const byte BLUE_LED_PIN;
-
-//extern const byte ID_PIN_P1;
-//extern const byte ID_PIN_P2;
-//extern const byte ID_PIN_P3;
-
 #endif

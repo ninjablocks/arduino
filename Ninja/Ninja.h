@@ -1,12 +1,35 @@
 #ifndef NINJA_H
 #define NINJA_H
 
-#define TMP102_I2C_ADDRESS 0x48
+// This part defines which version to use when compile
+// Only one define is allowed.
 
-// RGB LED PIN
+//#define V11				1
+#define V12 				1
+#define VERSION_NO 	"038"
+
+#if defined(V12) && defined(V11)  
+#error Please select only a version by setting either V11 or V12.
+#endif
+
+#ifdef V11
+#define TMP102_I2C_ADDRESS 0x48
+#endif
+
+#ifdef V11
 #define RED_LED_PIN 	7
 #define GREEN_LED_PIN 8
 #define BLUE_LED_PIN 	9
+#define RX433_INT 		1
+#endif
+
+#ifdef V12
+#define RED_LED_PIN 	10
+#define GREEN_LED_PIN 11
+#define BLUE_LED_PIN 	9
+#define RX433_INT 		0
+#define TX433_PIN 		4
+#endif
 
 // Analog PIN Port 1
 #define ADC_PIN_P1_1	A0

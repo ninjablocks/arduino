@@ -75,9 +75,9 @@ int SENSORS::idTheType(int sensorValue, bool debug)
 
 int SENSORS::getSensorValue(byte port, int deviceID)
 {
-	int aInPin;
-	int dInPin;
-	int sensorValue;
+	int aInPin=0;
+	int dInPin=0;
+	int sensorValue=0;
 	static int tempValue;
 	
 	if(port == 1){
@@ -180,6 +180,7 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 	}
 }
 
+#ifdef V11
 float SENSORS::getBoardTemperature()
 {
 	unsigned long currentTime;
@@ -202,4 +203,4 @@ float SENSORS::getBoardTemperature()
 	else
 		return _lastTemperature;
 }
-
+#endif
