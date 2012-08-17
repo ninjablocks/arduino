@@ -42,10 +42,9 @@ class NinjaObjects {
 		boolean doPort3(byte* port);
 		void doDHT22(byte port);
 		void blinkLED(byte ledPin);
-#ifdef V12
-		void doOnBoard433(void)		;
-#endif
-
+		void do433(void);
+		void doLacrosseTX3(unsigned long long tx3value);
+		void doLacrosseWS2355(unsigned long long ws2344value);
 };
 
 extern NinjaObjects nOBJECTS;

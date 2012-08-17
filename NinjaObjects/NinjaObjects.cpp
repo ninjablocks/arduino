@@ -34,6 +34,15 @@
 #define GUID_LEN	36
 #define DATA_LEN	64
 
+
+const char strWindDirection[16][4] = 
+{
+  "N", "NNE", "NE", "ENE",
+  "E", "ESE", "SE", "SSE",
+  "S", "SSW", "SW", "WSW",
+  "W", "WNW", "NW", "NNW"
+};
+
 struct __freelist {
   size_t sz;
   struct __freelist *nx;
@@ -94,7 +103,7 @@ int getIDPinReading(int pin)
   return val;
 }
 
-void dec2binWzerofill(char* bin, unsigned long Dec, unsigned int bitLength){
+void dec2binWzerofill(char* bin, unsigned long long Dec, unsigned int bitLength){
 //  static char bin[64]; 
   unsigned int i=0;
 
@@ -543,40 +552,6 @@ void NinjaObjects::doOnBoardRGB()
 	if (Serial.available()>0) doReactors();
   
 }
-
-void NinjaObjects::doOnBoard433(void)
-{
-	int tempID;
-	tempID=11;
-
-	mySwitch.enableReceive(RX433_INT);
-
-	if (mySwitch.available()) 
-	{
-		int value = mySwitch.getReceivedValue();
-		if (value == 0) // unknown encoding
-		{
-			doJSONData("0", 0, tempID, "0", 0, true);
-		} 
-		else 
-		{
-			// Blink Green LED to show data valid
-			blinkLED(GREEN_LED_PIN);
-			if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
-				doJSONData("0", 0, tempID, "0", 0, true);
-			else
-			{
-				dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
-				doJSONData("0", 0, tempID, strDATA, 0, true);
-			}
-  	}
-  	mySwitch.resetAvailable();
-  }
-  else
-  	doJSONData("0", 0, tempID, "-1", 0, true);
-
-	if (Serial.available()>0) doReactors();
-}
 #endif
 
 #ifdef V11
@@ -632,6 +607,163 @@ void NinjaObjects::doOnBoardAccelerometer()
 }
 #endif
 
+void NinjaObjects::doLacrosseTX3(unsigned long long tx3value)
+{
+	byte nibble[10];
+	char strAddress[3];
+	unsigned long long mask=0x0f;
+	unsigned int checksum=0;
+
+	for (int i=0;i<10;i++)
+	{
+		nibble[9-i]=0;
+		nibble[9-i]=(byte)(tx3value & mask);
+		if (i!=0) checksum=checksum+nibble[9-i];  // skip checksum byte
+		tx3value=tx3value>>4;
+	}
+	
+	checksum=checksum & 0xf;
+	if ((nibble[0]==0xa) && (nibble[9]==checksum))
+	{
+		// good packet
+		byte SensorAddress = (nibble[2]<<4) + ((nibble[3]&0xe)>>1);
+		sprintf(strAddress,"%X", SensorAddress);
+		unsigned int dataValue = ((int)(nibble[7]*100))+((int)(nibble[8]*10))+nibble[6];
+		
+		// temperature
+		if (nibble[1]==0)
+		{
+			double realValue=dataValue;
+			realValue=realValue/10;
+			realValue-=50;
+			doJSONData(strAddress, 0, 13, NULL, realValue, false);
+		}
+	}
+}
+
+void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
+{
+	byte nibble[12];
+	byte windir;
+	unsigned long long mask=0x0f;
+	unsigned int checksum=0;
+	char strAddress[3];
+
+	for (int i=0;i<12;i++)
+	{
+		nibble[11-i]=0;
+		nibble[11-i]=(byte)(ws2344value & mask);
+		if (i!=0) checksum=checksum+nibble[11-i];  // skip checksum byte
+		ws2344value=ws2344value>>4;
+	}
+
+	checksum=checksum & 0xf;
+	if ((nibble[0]==0x9) && (nibble[11]==checksum))
+	{
+	// good packet
+
+		byte SensorAddress = (nibble[2]<<4) + nibble[3];
+		sprintf(strAddress,"%X", SensorAddress);
+		byte Type = nibble[1] & 0x3;
+
+		switch(Type)
+		{
+			case 0:
+				double temperature;
+				temperature =nibble[6] *100;    
+				temperature +=nibble[7] *10;
+				temperature +=nibble[8];
+				temperature =(temperature-300)/10;
+				doJSONData(strAddress, 0, 20, NULL, temperature, false);
+				//Serial.print ("  Temp=");
+				//printDouble(temperature,1);
+				break;
+			case 1:
+				int humidity;
+				humidity  = nibble[6]*10;
+				humidity += nibble[7];
+				doJSONData(strAddress, 0, 21, NULL, humidity, false);
+				//Serial.print("  Humidity=");
+				//Serial.print(humidity);
+				break;
+			case 2:
+				double rainfall;
+				rainfall = nibble[6]<<8;
+				rainfall += nibble[7]<<4;
+				rainfall += nibble[8];
+				rainfall = (rainfall*518)/1000;
+				doJSONData(strAddress, 0, 22, NULL, rainfall, false);
+				//Serial.print("  Rainfall=");
+				//printDouble(rainfall,2);
+				//Serial.print("mm");
+				break;
+			case 3:
+				double windspeed;
+				windir = (byte)nibble[8];
+				windspeed = (nibble[5] & 0x1)<<8;
+				windspeed += nibble[6]<<4;
+				windspeed += nibble[7];
+				windspeed =(windspeed/10)*3.6;
+				doJSONData(strAddress, 0, 23, (char *)strWindDirection[windir], 0, true);
+
+				doJSONData(strAddress, 0, 24, NULL, windspeed, false);
+				//Serial.print("  Wind ");
+				//Serial.print( strWindDirection[windir]);
+				//Serial.print(" ");
+				//printDouble(windspeed,1);
+				//Serial.print("KMH");
+				break;
+
+			default:
+				break;
+		}
+	}
+}
+
+void NinjaObjects::do433(void)
+{
+	int tempID;
+	tempID=11;
+
+	if (Serial.available()>0) doReactors();
+
+	mySwitch.enableReceive(RX433_INT);
+
+	if (mySwitch.available()) 
+	{
+		unsigned long long value = mySwitch.getReceivedValue();
+		if (value == 0) // unknown encoding
+		{
+			doJSONData("0", 0, tempID, "0", 0, true);
+		} 
+		else 
+		{
+			// Blink Green LED to show data valid
+			blinkLED(GREEN_LED_PIN);
+
+			if(mySwitch.getReceivedProtocol()==3) 
+				doLacrosseTX3(value);
+			else if (mySwitch.getReceivedProtocol()==4)
+				doLacrosseWS2355(value);
+			else
+			{		
+				if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
+					doJSONData("0", 0, tempID, "0", 0, true);
+				else
+				{
+					dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
+					doJSONData("0", 0, tempID, strDATA, 0, true);
+				}
+			}
+  	}
+  	mySwitch.resetAvailable();
+  }
+	else
+		//doJSONData("0", 0, tempID, "-1", 0, true);
+
+	if (Serial.available()>0) doReactors();
+}
+
 boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 {
 	int tempID=0;
@@ -661,8 +793,11 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 		}
 		
 #ifdef V11
+
 		else if(tempID==11)	// 433Mhz Receiver
 		{
+			do433();
+/*
 			if (mySwitch.available()) 
 			{
 				int value = mySwitch.getReceivedValue();
@@ -688,6 +823,7 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
   		}
   		else
 				doJSONData("1", 0, tempID, "-1", 0, true);
+				*/
 		}
 #endif
 
@@ -774,7 +910,7 @@ void NinjaObjects::sendObjects()
 #endif
 
 #ifdef V12
-	doOnBoard433();
+	do433();
 #endif
 
 	IsDHT22=doPort1(&DHT22_PORT);

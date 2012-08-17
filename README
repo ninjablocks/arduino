@@ -1,6 +1,15 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.39: 17th August 2012 by JP Liew
+	- added receiveLaCrosse() in RCSwitch lib to decode LaCrosse 433 Transmitter
+	- changed RCSwitch ISR routine to be able to accept LaCrosse protocol
+	- changed decoding to use unsigned long long for protocol longer than 32bits
+	- added support for LaCrosse WS2355 protocol for emp, humidity, rain, wind, win direction
+	- added support for LaCrosse TX3 protocol for temp
+	- changed do433() in ordered to use the same routine for V11 and V12
+	- disabled do433() from sending -1 result
+
 Version 0.38: MAJOR code changes to accomodate V11 and V12 board, 14th August 2012 by JP Liew
 	- added doJSONData(...) to allow easier calling of the library
 	- clean up many precompile warnings

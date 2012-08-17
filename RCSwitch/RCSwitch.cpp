@@ -31,7 +31,7 @@
 
 #include "RCSwitch.h"
 
-unsigned long RCSwitch::nReceivedValue = NULL;
+unsigned long long RCSwitch::nReceivedValue = NULL;
 unsigned int RCSwitch::nReceivedBitlength = 0;
 unsigned int RCSwitch::nReceivedDelay = 0;
 unsigned int RCSwitch::nReceivedProtocol = 0;
@@ -472,7 +472,7 @@ void RCSwitch::resetAvailable() {
   RCSwitch::nReceivedValue = NULL;
 }
 
-unsigned long RCSwitch::getReceivedValue() {
+unsigned long long RCSwitch::getReceivedValue() {
     return RCSwitch::nReceivedValue;
 }
 
@@ -497,9 +497,9 @@ unsigned int* RCSwitch::getReceivedRawdata() {
  */
 bool RCSwitch::receiveProtocol1(unsigned int changeCount){
     
-	  unsigned long code = 0;
-    unsigned long delay = RCSwitch::timings[0] / 31;
-    unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
+		unsigned long code = 0;
+		unsigned long delay = RCSwitch::timings[0] / 31;
+		unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
 
       for (unsigned int i = 1; i<changeCount ; i=i+2) {
       
@@ -559,8 +559,62 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount){
 		return false;
 	else
 		return true;
-
 }
+
+bool RCSwitch::receiveLaCrosse(unsigned int changeCount){
+    
+	  unsigned long long code = 0ull;
+    unsigned long delay = RCSwitch::timings[0] / 3;
+    //unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
+
+    unsigned int HighWidth = 1500;
+    unsigned int LowWidth = 500;
+    unsigned int delayTolerance = 200;
+
+      for (int i = 1; i<changeCount ; i=i+2) 
+      {
+      		// delay = 145 , delayTolerance = 87
+      		//Serial.print(RCSwitch::timings[i]);
+      		//Serial.print(",");
+          if (RCSwitch::timings[i] > HighWidth-delayTolerance && RCSwitch::timings[i] < HighWidth+delayTolerance) 
+          {
+          	//Serial.print("0");
+            code = code << 1;
+          } else if ( RCSwitch::timings[i] > LowWidth-delayTolerance && RCSwitch::timings[i] < LowWidth+delayTolerance) 
+          {
+          	//Serial.print("1");
+            code+=1;
+            code = code << 1;
+          } else 
+          {
+            // Failed
+            i = changeCount;
+            code = 0;
+          }
+      }      
+      code = code >> 1;
+    if (changeCount > 80) 
+    {    // ignore < 4bit values as there are no devices sending 4bit values => noise
+      RCSwitch::nReceivedValue = code;
+      RCSwitch::nReceivedBitlength = changeCount / 2;
+      RCSwitch::nReceivedDelay = 500;
+      if (changeCount<100) 
+      	RCSwitch::nReceivedProtocol = 3;
+      else if (changeCount==104) 
+      	RCSwitch::nReceivedProtocol = 4;
+      else
+      	RCSwitch::nReceivedProtocol = 0;
+      	
+    }
+
+	//Serial.println();
+	if (code == 0)
+		return false;
+	else
+		return true;
+	
+}
+
 void RCSwitch::handleInterrupt() {
 
   static unsigned int duration;
@@ -571,24 +625,53 @@ void RCSwitch::handleInterrupt() {
 
   long time = micros();
   duration = time - lastTime;
- 
-  if (duration > 5000 && duration > RCSwitch::timings[0] - 200 && duration < RCSwitch::timings[0] + 200) {
-    repeatCount++;
-    changeCount--;
-    if (repeatCount == 2) {
-		if (receiveProtocol1(changeCount) == false){
-			if (receiveProtocol2(changeCount) == false){
-				//failed
+
+//  if (duration > 5000 && duration > RCSwitch::timings[0] - 200 && duration < RCSwitch::timings[0] + 200) {
+  if (duration > 5000 && RCSwitch::timings[0]>5000) 
+  {
+	  repeatCount++;
+    //changeCount--;
+        		//digitalWrite(15,HIGH);
+    if ((repeatCount == 1)) 
+    {
+
+    	if(changeCount>20)
+    	{
+    		//digitalWrite(15,HIGH);
+    		if (changeCount>80)
+    		{
+
+					if (receiveLaCrosse(changeCount) == false)
+					{
+						//failed
+	  			}
+				}
+				else 
+				{
+					changeCount--;
+					if (receiveProtocol1(changeCount) == false)
+					{
+						if (receiveProtocol2(changeCount) == false)
+						{
+						}
+					}		
+				}
 			}
-		}
       repeatCount = 0;
     }
     changeCount = 0;
-  } else if (duration > 5000) {
+   	//digitalWrite(15,LOW);
+
+  } 
+  else if (duration > 3000) 
+  {
     changeCount = 0;
+    repeatCount=0;
+ 	  //digitalWrite(6,LOW);
   }
  
-  if (changeCount >= RCSWITCH_MAX_CHANGES) {
+  if (changeCount >= RCSWITCH_MAX_CHANGES) 
+  {
     changeCount = 0;
     repeatCount = 0;
   }
