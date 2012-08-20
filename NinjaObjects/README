@@ -7,6 +7,9 @@ Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduin
 	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay
 	- tidied doPort1(), doPort2() and doPort3() when dealing with DHT22
 	- disabled DHT22 from sending -99 or 0
+	- cleaned commented codes
+	- enabled accelerometer for V11 after testing
+	- split do433() into GUID=0 and GUID=1 for V12 and V11 respectively
 	
 17th August 2012 by JP Liew
 	- added support for LaCrosse WS2355 protocol for emp, humidity, rain, wind, win direction

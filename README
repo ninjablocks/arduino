@@ -1,6 +1,11 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.41: 20th August 2012 by JP Liew
+	- cleaned commented codes
+	- enabled accelerometer for V11 after testing
+	- split do433() into GUID=0 and GUID=1 for V12 and V11 respectively
+
 Version 0.40: 20th August 2012 by JP Liew
 	- changed doOnBoardRGB(), doOnBoardTemperature(), doDHT22() to slow down to 30 seconds per update
 	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay
