@@ -2,6 +2,12 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+20th August 2012 by JP Liew
+	- changed doOnBoardRGB(), doOnBoardTemperature(), doDHT22() to slow down to 30 seconds per update
+	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay
+	- tidied doPort1(), doPort2() and doPort3() when dealing with DHT22
+	- disabled DHT22 from sending -99 or 0
+	
 17th August 2012 by JP Liew
 	- added support for LaCrosse WS2355 protocol for emp, humidity, rain, wind, win direction
 	- added support for LaCrosse TX3 protocol for temp

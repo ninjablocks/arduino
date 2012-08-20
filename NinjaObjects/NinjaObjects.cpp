@@ -1,21 +1,21 @@
 /*
-  NinjaObjects.cpp - Ninja Objects library
-  
-  Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
-  
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+	NinjaObjects.cpp - Ninja Objects library
+	
+	Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 	Read README for version info.
 
@@ -29,25 +29,22 @@
 #include "NinjaObjects.h"
 #include <RCSwitch.h>
 
-
-#define recvLEN 	128        // this is really bad, will need to work out dynamic length
-#define GUID_LEN	36
-#define DATA_LEN	64
-
-
 const char strWindDirection[16][4] = 
 {
-  "N", "NNE", "NE", "ENE",
-  "E", "ESE", "SE", "SSE",
-  "S", "SSW", "SW", "WSW",
-  "W", "WNW", "NW", "NNW"
+	"N", "NNE", "NE", "ENE",
+	"E", "ESE", "SE", "SSE",
+	"S", "SSW", "SW", "WSW",
+	"W", "WNW", "NW", "NNW"
 };
 
-struct __freelist {
-  size_t sz;
-  struct __freelist *nx;
+struct __freelist
+{
+	size_t sz;
+	struct __freelist *nx;
 };
 
+
+// Variables need to be moved to private or public part of the object - TODO
 uint16_t biggest;
 NinjaObjects nOBJECTS;
 char serInStr[recvLEN];  // array to hold the incoming serial string bytes
@@ -62,6 +59,10 @@ char strDATA[DATA_LEN];
 int intDATA=0;
 boolean IsDATAString=0;
 RCSwitch mySwitch = RCSwitch();
+boolean IgnoreHeartbeatDelay =false;
+int _lastPort1ID=0;
+int _lastPort2ID=0;
+int _lastPort3ID=0;
 
 #ifdef V12
 byte RED_LED_VALUE =0;
@@ -71,7 +72,7 @@ byte BLUE_LED_VALUE=0;
 
 NinjaObjects::NinjaObjects()
 {
-
+	_lastHeartbeat = millis()+60000;
 }
 
 void NinjaObjects::blinkLED(byte ledPin)
@@ -96,115 +97,122 @@ void NinjaObjects::blinkLED(byte ledPin)
 
 int getIDPinReading(int pin)
 {
-  analogRead(pin);
-  delay(10);
-  int val = analogRead(pin);
-  delay(20);
-  return val;
+	analogRead(pin);
+	delay(10);
+	int val = analogRead(pin);
+	delay(20);
+	return val;
 }
 
 void dec2binWzerofill(char* bin, unsigned long long Dec, unsigned int bitLength){
 //  static char bin[64]; 
-  unsigned int i=0;
+	unsigned int i=0;
 
-  while (Dec > 0) {
-    bin[32+i++] = ((Dec & 1) > 0) ? '1' : '0';
-    Dec = Dec >> 1;
-  }
+	while (Dec > 0) 
+	{
+		bin[32+i++] = ((Dec & 1) > 0) ? '1' : '0';
+		Dec = Dec >> 1;
+	}
 
-  for (unsigned int j = 0; j< bitLength; j++) {
-    if (j >= bitLength - i) {
-      bin[j] = bin[ 31 + i - (j - (bitLength - i)) ];
-    }else {
-      bin[j] = '0';
-    }
-  }
-  bin[bitLength] = '\0';
-  
-  return;
+	for (unsigned int j = 0; j< bitLength; j++) 
+	{
+		if (j >= bitLength - i) 
+		{
+			bin[j] = bin[ 31 + i - (j - (bitLength - i)) ];
+		}else 
+		{
+			bin[j] = '0';
+		}
+	}
+	bin[bitLength] = '\0';
+	
+	return;
 }
 
 // given a PROGMEM string, use Serial.print() to send it out
 // this is needed to save precious memory
 //thanks to todbot for this http://todbot.com/blog/category/programming/
 void printProgStr(const prog_char* str) {
-  char c;
-  if (!str) {
-    return;
-  }
-  while ((c = pgm_read_byte(str))) {
-    Serial.print(c, byte(0));
-    str++;
-  }
+	char c;
+	if (!str)
+	{
+		return;
+	}
+	while ((c = pgm_read_byte(str))) 
+	{
+		Serial.print(c, byte(0));
+		str++;
+	}
 }
 
 uint16_t freeMem(uint16_t *biggest)
 {
-  char *brkval;
-  char *cp;
-  unsigned freeSpace;
-  struct __freelist *fp1, *fp2;
+	char *brkval;
+	char *cp;
+	unsigned freeSpace;
+	struct __freelist *fp1, *fp2;
 
-  brkval = __brkval;
-  if (brkval == 0) {
-    brkval = __malloc_heap_start;
-  }
-  cp = __malloc_heap_end;
-  if (cp == 0) {
-    cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
-  }
-  if (cp <= brkval) return 0;
+	brkval = __brkval;
+	if (brkval == 0) 
+	{
+		brkval = __malloc_heap_start;
+	}
+	cp = __malloc_heap_end;
+	if (cp == 0) 
+	{
+		cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
+	}
+	if (cp <= brkval) return 0;
 
-  freeSpace = cp - brkval;
+	freeSpace = cp - brkval;
 
-  for (*biggest = 0, fp1 = __flp, fp2 = 0;
-     fp1;
-     fp2 = fp1, fp1 = fp1->nx) {
-      if (fp1->sz > *biggest) *biggest = fp1->sz;
-    freeSpace += fp1->sz;
-  }
-  return freeSpace;
+	for (*biggest = 0, fp1 = __flp, fp2 = 0;fp1; fp2 = fp1, fp1 = fp1->nx) 
+	{
+		if (fp1->sz > *biggest) *biggest = fp1->sz;
+		freeSpace += fp1->sz;
+	}
+	return freeSpace;
 }
 
 void freeMem(char* message) 
 {
-  Serial.print(message);
-  Serial.print(":\t");
-  Serial.println(freeMem(&biggest));
+	Serial.print(message);
+	Serial.print(":\t");
+	Serial.println(freeMem(&biggest));
 }
 
 
 //read a string from the serial and store it in an array
 int readSerialString () 
 {
-  int i=0;
-  if(!Serial.available()) 
-    return -1;
+	int i=0;
+	if(!Serial.available()) 
+		return -1;
 
-  while (Serial.available()>0)
-  {
-  	if( i < recvLEN) 				
-  	{
-    	char c = Serial.read();
-    	serInStr[i++] = c;
-    	delay(2);
-  	}
-  	else
-  		break;			
-  }
-  return i;
+	while (Serial.available()>0)
+	{
+		if( i < recvLEN) 				
+		{
+			char c = Serial.read();
+			serInStr[i++] = c;
+			delay(2);
+		}
+		else
+			break;			
+	}
+	return i;
 }
 
 boolean NinjaObjects::decodeJSON()
 {
 	boolean IsJSONValid=false;
- 	aJsonObject* rootObject = aJson.parse(serInStr);
- 	memset(serInStr,0,recvLEN);		// Clear serialBuffer
+	aJsonObject* rootObject = aJson.parse(serInStr);
+	memset(serInStr,0,recvLEN);		// Clear serialBuffer
 
- 	if (rootObject != NULL)
- 	{
- 		if(aJson.getArraySize(rootObject)>0)
- 		{
+	if (rootObject != NULL)
+	{
+		if(aJson.getArraySize(rootObject)>0)
+		{
 			aJsonObject* devices = aJson.getObjectItem(rootObject,"DEVICE");
 			if (devices != NULL)
 			{
@@ -251,25 +259,24 @@ boolean NinjaObjects::decodeJSON()
 			}
 		}
 
-  	aJson.deleteItem(rootObject);
- 	
-  	if(IsJSONValid)
-  		return true;
-  	else
-  		return false;  
+		aJson.deleteItem(rootObject);
+	
+		if(IsJSONValid)
+			return true;
+		else
+			return false;  
 	}
 	else
 		return false;
-
 }
 
 // Ninja reactor processing
 void NinjaObjects::doReactors()
 {
-  int spos = readSerialString();
-  
-  if (spos>0)
-  {
+	int spos = readSerialString();
+
+	if (spos>0)
+	{
 		if(decodeJSON())
 		{
 			// Print out decoded Params 
@@ -306,23 +313,23 @@ void NinjaObjects::doReactors()
 						long colorVal = strtol(strDATA, NULL, 16);
 
 #ifdef V11
-    				analogWrite(RED_LED_PIN, 255-int((colorVal&0xff0000)>>16) );
-    				analogWrite(GREEN_LED_PIN, 255-int((colorVal&0x00ff00)>>8) );
-    				analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );			
+						analogWrite(RED_LED_PIN, 255-int((colorVal&0xff0000)>>16) );
+						analogWrite(GREEN_LED_PIN, 255-int((colorVal&0x00ff00)>>8) );
+						analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );			
 #endif
 
 #ifdef V12
 						RED_LED_VALUE = int((colorVal&0xff0000)>>16);
 						analogWrite(RED_LED_PIN, 255-RED_LED_VALUE );
-    				
+
 						GREEN_LED_VALUE=int((colorVal&0x00ff00)>>8);
 						analogWrite(GREEN_LED_PIN, 255-GREEN_LED_VALUE);
-    				
+				
 						BLUE_LED_VALUE = int((colorVal&0x0000ff)>>0);
 						analogWrite(BLUE_LED_PIN, 255-BLUE_LED_VALUE);	
 #endif    				    				
-    				
-    				doJSONResponse();
+				
+						doJSONResponse();
 //						memset(strDATA,0, DATA_LEN);
 						break;
 					}
@@ -352,7 +359,7 @@ void NinjaObjects::doReactors()
 						mySwitch.setRepeatTransmit(8);		// watch this, 3-8 repeats will be enough 
 						mySwitch.send(strDATA);
 						mySwitch.disableTransmit();
-    				doJSONResponse();
+						doJSONResponse();
 						//memset(strDATA,0, DATA_LEN);
 						break;
 					}
@@ -398,11 +405,11 @@ void NinjaObjects::doReactors()
 						{
 				
 #ifdef V11							
-							strcpy(strDATA,"V11_");		// need to find a way to generate new version number in sync with git tag
+							strcpy(strDATA,"V11_");		// need to find a way to generate new version number in sync with git tag - TODO
 #endif
 
 #ifdef V12
-							strcpy(strDATA,"V12_");		// need to find a way to generate new version number in sync with git tag
+							strcpy(strDATA,"V12_");		// need to find a way to generate new version number in sync with git tag - TODO
 #endif
 
 							strcat(strDATA,VERSION_NO);
@@ -434,12 +441,12 @@ void NinjaObjects::doReactors()
 
 void NinjaObjects::doJSONError(int errorCode)
 {
-  aJsonObject* root = aJson.createObject();
-  if (root == NULL)
-  {
-  	Serial.println("error root"); 
-    return;
-  }
+	aJsonObject* root = aJson.createObject();
+	if (root == NULL)
+	{
+		Serial.println("error root"); 
+		return;
+	}
 
 	aJsonObject* device = aJson.createArray();
 	aJson.addItemToObject(root,"ERROR", device);
@@ -448,24 +455,24 @@ void NinjaObjects::doJSONError(int errorCode)
 	aJson.addItemToArray(device, guid1);
 	aJson.addNumberToObject(guid1, "CODE", errorCode);
 	
-  char* string = aJson.print(root);
-  if (string != NULL) 
-  {
-    Serial.println(string);
-  } 
+	char* string = aJson.print(root);
+	if (string != NULL) 
+	{
+		Serial.println(string);
+	}
 
-  aJson.deleteItem(root);
-  free(string);
+	aJson.deleteItem(root);
+	free(string);
 }
 
 void NinjaObjects::doJSONResponse()
 {
-  aJsonObject* root = aJson.createObject();
-  if (root == NULL)
-  {
-  	Serial.println("error root"); 
-    return;
-  }
+	aJsonObject* root = aJson.createObject();
+	if (root == NULL)
+	{
+		Serial.println("error root"); 
+		return;
+	}
 
 	aJsonObject* device = aJson.createArray();
 	aJson.addItemToObject(root,"ACK", device);
@@ -481,25 +488,25 @@ void NinjaObjects::doJSONResponse()
 	else
 		aJson.addNumberToObject(guid1, "DA", intDATA);
 
-  char* string = aJson.print(root);
-  if (string != NULL) 
-  {
-    Serial.println(string);
-  } 
+	char* string = aJson.print(root);
+	if (string != NULL) 
+	{
+		Serial.println(string);
+	}
 
-  aJson.deleteItem(root);
-  free(string);
+	aJson.deleteItem(root);
+	free(string);
 }
 
 void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString)
 {
-  int tempDATA=0;
-  aJsonObject* root = aJson.createObject();
-  if (root == NULL)
-  {
-  	Serial.println("error root"); 
-    return;
-  }
+	int tempDATA=0;
+	aJsonObject* root = aJson.createObject();
+	if (root == NULL)
+	{
+		Serial.println("error root"); 
+		return;
+	}
 
 	aJsonObject* device = aJson.createArray();
 	aJson.addItemToObject(root,"DEVICE", device);
@@ -521,14 +528,14 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 			aJson.addNumberToObject(guid1, "DA", tempDATA);
 	}
 
-  char* string = aJson.print(root);
-  if (string != NULL) 
-  {
-    Serial.println(string);
-  } 
+	char* string = aJson.print(root);
+	if (string != NULL) 
+	{
+		Serial.println(string);
+	}
 
-  aJson.deleteItem(root);
-  free(string);
+	aJson.deleteItem(root);
+	free(string);
 }
 
 #ifdef V12
@@ -550,7 +557,7 @@ void NinjaObjects::doOnBoardRGB()
 
 	doJSONData("0", 0, 1000, tempSTR, 0, true);
 	if (Serial.available()>0) doReactors();
-  
+
 }
 #endif
 
@@ -587,8 +594,10 @@ void NinjaObjects::doOnBoardRGB()
 
 void NinjaObjects::doOnBoardTemp()
 {
+	float fTemperature=0;
 	if (Serial.available()>0) doReactors();
-	doJSONData("0", 0, 1, NULL, Sensors.getBoardTemperature(), false);
+	fTemperature =Sensors.getBoardTemperature();
+	doJSONData("0", 0, 1, NULL, fTemperature, false);
 	if (Serial.available()>0) doReactors();
 }
 
@@ -755,9 +764,9 @@ void NinjaObjects::do433(void)
 					doJSONData("0", 0, tempID, strDATA, 0, true);
 				}
 			}
-  	}
-  	mySwitch.resetAvailable();
-  }
+		}
+		mySwitch.resetAvailable();
+	}
 	else
 		//doJSONData("0", 0, tempID, "-1", 0, true);
 
@@ -772,6 +781,7 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 	*DHT22_PORT=0;
 		
 	if (Serial.available()>0) doReactors();
+	
 	// Checking Port 1
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P1),false);
 
@@ -782,54 +792,57 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 		mySwitch.disableReceive();
 #endif
 		
-	if (tempID==8) {IsDHT22=true; *DHT22_PORT=1;}
-	if (tempID>-1)
+	if (tempID==8)
 	{
-		if (tempID==0)
-			doJSONData("1", 0, tempID, NULL, getIDPinReading(ID_PIN_P1), false);
-		else if ((tempID==8) || (tempID==9))	// DHT22 Humidity or Temp
+		IsDHT22=true; 
+		*DHT22_PORT=1;
+		if (_lastPort1ID != tempID)
+			IgnoreHeartbeatDelay=true;
+	}
+	else
+	{
+		if (tempID>-1)
 		{
-			doJSONData("1", 0, tempID, NULL, (float)Sensors.getSensorValue(1, tempID)/10, false);
-		}
-		
+			if (tempID==0)
+				doJSONData("1", 0, tempID, NULL, getIDPinReading(ID_PIN_P1), false);
 #ifdef V11
-
-		else if(tempID==11)	// 433Mhz Receiver
-		{
-			do433();
-/*
-			if (mySwitch.available()) 
+			else if(tempID==11)	// 433Mhz Receiver
 			{
-				int value = mySwitch.getReceivedValue();
-				if (value == 0) // unknown encoding
+				do433();
+/*
+				if (mySwitch.available()) 
 				{
-					doJSONData("1", 0, tempID, "0", 0, true);
-				} 
-				else 
-				{
-					// Blink Green LED to show data valid
-					blinkLED(GREEN_LED_PIN);
-					//String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
-					//recvSTR.toCharArray(strDATA, DATA_LEN);
-					if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
-						doJSONData("1", 0, tempID, "0", 0, true);
-					else
+					int value = mySwitch.getReceivedValue();
+					if (value == 0) // unknown encoding
 					{
-						dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
-						doJSONData("1", 0, tempID, strDATA,0, true);
+						doJSONData("1", 0, tempID, "0", 0, true);
+					} 
+					else 
+					{
+						// Blink Green LED to show data valid
+						blinkLED(GREEN_LED_PIN);
+						//String recvSTR = String(mySwitch.getReceivedValue(), BIN);	
+						//recvSTR.toCharArray(strDATA, DATA_LEN);
+						if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
+							doJSONData("1", 0, tempID, "0", 0, true);
+						else
+						{
+							dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
+							doJSONData("1", 0, tempID, strDATA,0, true);
+						}
 					}
-    		}
-    		mySwitch.resetAvailable();
-  		}
-  		else
-				doJSONData("1", 0, tempID, "-1", 0, true);
-				*/
-		}
+					mySwitch.resetAvailable();
+				}
+				else
+					doJSONData("1", 0, tempID, "-1", 0, true);
+					*/
+			}
 #endif
-
 		else				
 			doJSONData("1", 0, tempID, NULL, Sensors.getSensorValue(1, tempID), false);
+		}
 	}
+	_lastPort1ID=tempID;
 	if (Serial.available()>0) doReactors();
 	return IsDHT22;
 }
@@ -844,20 +857,27 @@ boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 	if (Serial.available()>0) doReactors();
 	// Checking Port 2
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P2),false);
-	if (tempID==8) {IsDHT22=true; *DHT22_PORT=2;}
-	if (tempID>-1)
+	if (tempID==8) 
 	{
-		if (tempID==0)
-			doJSONData("2", 0, tempID, NULL, getIDPinReading(ID_PIN_P2),false);
-		else
+		IsDHT22=true; 
+		*DHT22_PORT=2;
+		if (_lastPort2ID != tempID)
+			IgnoreHeartbeatDelay=true;
+	}
+	else
+	{
+		if (tempID>-1)
 		{
-			if ((tempID==8) || (tempID==9))
-				doJSONData("2", 0, tempID, NULL, (float)Sensors.getSensorValue(2, tempID)/10,false);
-			else				
+			if (tempID==0)
+				doJSONData("2", 0, tempID, NULL, getIDPinReading(ID_PIN_P2),false);
+			else
+			{
 				doJSONData("2", 0, tempID, NULL, Sensors.getSensorValue(2, tempID),false);
+			}
 		}
 	}
 	if (Serial.available()>0) doReactors();
+	_lastPort2ID=tempID;
 	return IsDHT22;
 }
 
@@ -870,30 +890,53 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 	if (Serial.available()>0) doReactors();			
 	// Checking Port 3
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P3),false);
-	if (tempID==8) {IsDHT22=true; *DHT22_PORT=3;}
-	if (tempID>-1)
+	if (tempID==8) 
 	{
-		if (tempID==0)
-			doJSONData("3", 0, tempID, NULL, getIDPinReading(ID_PIN_P3), false);
-		else
-		{
-			if ((tempID==8) || (tempID==9))
-				doJSONData("3", 0, tempID, NULL, (float)Sensors.getSensorValue(3, tempID)/10, false);
-			else
-				doJSONData("3", 0, tempID, NULL, Sensors.getSensorValue(3, tempID), false);								
-		}
-
+		IsDHT22=true; 
+		*DHT22_PORT=3;
+		if (_lastPort3ID != tempID)
+				IgnoreHeartbeatDelay=true;
 	}
+	else
+	{
+		if (tempID>-1)
+		{
+			if (tempID==0)
+				doJSONData("3", 0, tempID, NULL, getIDPinReading(ID_PIN_P3), false);
+			else
+			{
+				doJSONData("3", 0, tempID, NULL, Sensors.getSensorValue(3, tempID), false);
+			}
+		}
+	}
+	_lastPort3ID=tempID;
 	if (Serial.available()>0) doReactors();
 	return IsDHT22;
 }
 
 void NinjaObjects::doDHT22(byte port)
 {
+	int intTemperature;
+	int intHumidity;
+	
 	char tempBuffer[15];
 	if (Serial.available()>0) doReactors();
 	sprintf(tempBuffer, "%d", port);
-	doJSONData(tempBuffer, 0,9,NULL,(float)Sensors.getSensorValue(port, 9)/10, false);
+	
+	intHumidity =Sensors.getSensorValue(port, 8);
+	intTemperature = Sensors.getSensorValue(port, 9);
+	
+	if ((intHumidity>0) && (intHumidity<2000))
+	{
+		doJSONData(tempBuffer, 0, 8, NULL, (float)intHumidity/10, false);
+		IgnoreHeartbeatDelay=false;		// Successfully sent, now obey heartbeat
+
+		if ((intTemperature>0) && (intTemperature<2000))
+		{
+			doJSONData(tempBuffer, 0,9,NULL,(float)intTemperature/10, false);
+		}
+	}
+	
 	if (Serial.available()>0) doReactors();
 }
 
@@ -902,11 +945,8 @@ void NinjaObjects::sendObjects()
 	boolean IsDHT22=false;
 	byte DHT22_PORT=0;
 
-	doOnBoardRGB();
-	
 #ifdef V11
-	doOnBoardTemp();
-	doOnBoardAccelerometer();
+	//doOnBoardAccelerometer();
 #endif
 
 #ifdef V12
@@ -914,10 +954,31 @@ void NinjaObjects::sendObjects()
 #endif
 
 	IsDHT22=doPort1(&DHT22_PORT);
-	if (IsDHT22) doDHT22(DHT22_PORT);
-	IsDHT22=doPort2(&DHT22_PORT);
-	if (IsDHT22) doDHT22(DHT22_PORT);
-	IsDHT22=doPort3(&DHT22_PORT);
-	if (IsDHT22) doDHT22(DHT22_PORT);
 
+	unsigned long currentHeartbeat = millis();
+
+	if (IsDHT22) 
+		if((IgnoreHeartbeatDelay) || ((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)) doDHT22(DHT22_PORT);
+
+	IsDHT22=doPort2(&DHT22_PORT);
+	
+	if (IsDHT22) 
+		if((IgnoreHeartbeatDelay) || ((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)) doDHT22(DHT22_PORT);
+	
+	IsDHT22=doPort3(&DHT22_PORT);
+
+	if (IsDHT22) 
+		if((IgnoreHeartbeatDelay) || ((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)) doDHT22(DHT22_PORT);
+
+// slow heart beat devices
+	if((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)
+	{
+		doOnBoardRGB();
+	
+	#ifdef V11
+		doOnBoardTemp();
+	#endif
+
+	_lastHeartbeat=currentHeartbeat;
+	}
 }

@@ -1,6 +1,14 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.40: 20th August 2012 by JP Liew
+	- changed doOnBoardRGB(), doOnBoardTemperature(), doDHT22() to slow down to 30 seconds per update
+	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay
+	- tidied doPort1(), doPort2() and doPort3() when dealing with DHT22
+	- disabled DHT22 from sending -99 or 0
+	- disabled 433 functions from sending 0 data
+	- changed getBoardTemperature() resolution to 1 decimal point
+	
 Version 0.39: 17th August 2012 by JP Liew
 	- added receiveLaCrosse() in RCSwitch lib to decode LaCrosse 433 Transmitter
 	- changed RCSwitch ISR routine to be able to accept LaCrosse protocol

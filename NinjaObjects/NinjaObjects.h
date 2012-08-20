@@ -25,7 +25,15 @@ const prog_char PROGMEM OBJECT_CREATE_STRING[] = "Created a Object\n";
 const prog_char PROGMEM HELLO_STRING[] = "********************\nTesting aJson\n*****************\n";
 */
 
+#define recvLEN 	128			// this is really bad, will need to work out dynamic length
+#define GUID_LEN	36
+#define DATA_LEN	64
+#define SLOW_DEVICE_HEARTBEAT	30000		// 30 seconds
+
+
 class NinjaObjects {
+	private:
+		unsigned long _lastHeartbeat;
 	public:
 		NinjaObjects ();
 		void sendObjects();

@@ -1,21 +1,21 @@
 /*
-  Sensors.cpp - Ninja Sensors library
-  
-  Developed by Ninja Blocks
-    
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+	Sensors.cpp - Ninja Sensors library
+	
+	Developed by Ninja Blocks
+	
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 	Read README for version info.
 	
@@ -32,12 +32,12 @@ SENSORS Sensors;
 DHT22 myDHT22 (14);
 DHT22_ERROR_t errorCode;
 
-
 extern NinjaObjects nOBJECTS;
 
 SENSORS::SENSORS()
 {
 	_lastReadTime = millis()+60000;		// force TMP102 time checking to take 1st reading when started.
+	_lastTemperature = 0;
 }
 
 int SENSORS::idTheType(int sensorValue, bool debug)
@@ -70,7 +70,6 @@ int SENSORS::idTheType(int sensorValue, bool debug)
 	} else {		// UNKNOWN sensor
 			return 0;
 	}
-
 }
 
 int SENSORS::getSensorValue(byte port, int deviceID)
@@ -190,15 +189,18 @@ float SENSORS::getBoardTemperature()
 	// slowing it down to 30sec per read.
 	if (currentTime - _lastReadTime > 30000)		
 	{
-  	Wire.begin();
-  	Wire.requestFrom(TMP102_I2C_ADDRESS,2); 
-  	byte MSB = Wire.read();
-  	byte LSB = Wire.read();
+		_lastReadTime = currentTime;
+		Wire.begin();
+		Wire.requestFrom(TMP102_I2C_ADDRESS,2); 
+		byte MSB = Wire.read();
+		byte LSB = Wire.read();
 
-  	int TemperatureSum = ((MSB << 8) | LSB) >> 4; //it's a 12bit int, using two's compliment for negative
-  	float celsius = TemperatureSum*0.0625;
-		_lastTemperature = celsius;
-  	return celsius;
+		int TemperatureSum = ((MSB << 8) | LSB) >> 4; //it's a 12bit int, using two's compliment for negative
+		float celsius = TemperatureSum*0.0625;
+		celsius=celsius*10;
+		int intTemp = (int)celsius;
+		_lastTemperature = ((float)intTemp/10);
+		return _lastTemperature;
 	}
 	else
 		return _lastTemperature;

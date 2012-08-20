@@ -4,9 +4,9 @@
 // This part defines which version to use when compile
 // Only one define is allowed.
 
-//#define V11				1
-#define V12 				1
-#define VERSION_NO 	"039"
+#define V11				1
+//#define V12 				1
+#define VERSION_NO 	"040"
 
 #if defined(V12) && defined(V11)  
 #error Please select only a version by setting either V11 or V12.

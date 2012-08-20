@@ -2,6 +2,9 @@ Sensors.cpp - Ninja Sensors library
   
 Developed by Ninja Blocks
 
+20th August 2012 by JP Liew
+	- changed getBoardTemperature() resolution to 1 decimal point
+
 14th August 2012 by JP Liew
 	- disabled getBoardTemperature() for V12
 
