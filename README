@@ -1,6 +1,15 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.42: 24th August 2012 by JP Liew
+	- added RGB Status light support
+	- added DID 999 for V12 status RGB
+	- added PLUGIN and UNPLUG events
+	- changed doJSONData() to support, DEVICE, PLUGIN and UNPLUG event in one function
+	- changed PIR and Push Button high from 1023 to 1
+	- changed sensor to only send on changed event, except Distance, Light and Sound
+	- changed Light sensor to report value from 0% to 100%, in a 10 average reading
+
 Version 0.41: 20th August 2012 by JP Liew
 	- cleaned commented codes
 	- enabled accelerometer for V11 after testing

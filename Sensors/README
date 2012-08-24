@@ -2,6 +2,9 @@ Sensors.cpp - Ninja Sensors library
   
 Developed by Ninja Blocks
 
+24th August 2012 by JP Liew
+	- changed PIR and Push Button high from 1023 to 1
+
 20th August 2012 by JP Liew
 	- changed getBoardTemperature() resolution to 1 decimal point
 

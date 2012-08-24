@@ -60,9 +60,17 @@ int intDATA=0;
 boolean IsDATAString=0;
 RCSwitch mySwitch = RCSwitch();
 boolean IgnoreHeartbeatDelay =false;
-int _lastPort1ID=0;
-int _lastPort2ID=0;
-int _lastPort3ID=0;
+int _lastPort1ID=-1;
+int _lastPort2ID=-1;
+int _lastPort3ID=-1;
+
+int iPort1Value=-1;
+int iPort2Value=-1;
+int iPort3Value=-1;
+
+
+byte LightSensorCount=0;
+int LightSensorTotalValue=0;
 
 #ifdef V12
 byte RED_LED_VALUE =0;
@@ -80,17 +88,36 @@ void NinjaObjects::blinkLED(byte ledPin)
 	int tempPORTB = PORTB;
 	int tempPORTD = PORTD;
 	
+#ifdef V11
 	digitalWrite(RED_LED_PIN, HIGH);
 	digitalWrite(GREEN_LED_PIN, HIGH);
 	digitalWrite(BLUE_LED_PIN, HIGH);
 	digitalWrite(ledPin, LOW);
+#endif
+
+#ifdef V12
+	digitalWrite(RED_STAT_LED_PIN, HIGH);
+	digitalWrite(GREEN_STAT_LED_PIN, HIGH);
+	digitalWrite(BLUE_STAT_LED_PIN, HIGH);
+	digitalWrite(ledPin, LOW);
+#endif
+
 	delay(60);
 	
+#ifdef V11
 	digitalWrite(RED_LED_PIN, HIGH);
 	digitalWrite(GREEN_LED_PIN, HIGH);
 	digitalWrite(BLUE_LED_PIN, HIGH);
-	delay(20);
+#endif
 	
+#ifdef V12
+	digitalWrite(RED_STAT_LED_PIN, HIGH);
+	digitalWrite(GREEN_STAT_LED_PIN, HIGH);
+	digitalWrite(BLUE_STAT_LED_PIN, HIGH);
+#endif
+
+	delay(20);
+
 	PORTB = tempPORTB;
 	PORTD = tempPORTD;
 }
@@ -283,6 +310,31 @@ void NinjaObjects::doReactors()
 			{
 				switch (intDID)
 				{
+					case 999:
+					{
+						long colorVal = strtol(strDATA, NULL, 16);
+
+#ifdef V11
+						analogWrite(RED_LED_PIN, 255-int((colorVal&0xff0000)>>16) );
+						analogWrite(GREEN_LED_PIN, 255-int((colorVal&0x00ff00)>>8) );
+						analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );			
+#endif
+
+#ifdef V12
+						//RED_LED_VALUE = int((colorVal&0xff0000)>>16);
+						analogWrite(RED_STAT_LED_PIN, 255-(int((colorVal&0xff0000)>>16)));
+
+						//GREEN_LED_VALUE=int((colorVal&0x00ff00)>>8);
+						analogWrite(GREEN_STAT_LED_PIN, 255-(int((colorVal&0x00ff00)>>8)));
+				
+						//BLUE_LED_VALUE = int((colorVal&0x0000ff)>>0);
+						analogWrite(BLUE_STAT_LED_PIN, 255-(int((colorVal&0x0000ff)>>0)));	
+#endif
+				
+						doJSONResponse();
+						break;
+					}
+					
 					case 1000:		// On Board RGB Led
 					{
 						long colorVal = strtol(strDATA, NULL, 16);
@@ -471,9 +523,13 @@ void NinjaObjects::doJSONResponse()
 	free(string);
 }
 
-void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString)
+void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString, byte dataTYPE)
 {
 	int tempDATA=0;
+	
+	if((dataTYPE<-1) || (dataTYPE>2))
+		return;
+
 	aJsonObject* root = aJson.createObject();
 	if (root == NULL)
 	{
@@ -482,7 +538,14 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 	}
 
 	aJsonObject* device = aJson.createArray();
-	aJson.addItemToObject(root,"DEVICE", device);
+	if (dataTYPE==0)
+		aJson.addItemToObject(root,"DEVICE", device);
+	
+	if (dataTYPE==1)
+		aJson.addItemToObject(root,"PLUGIN", device);
+	
+	if (dataTYPE==2)
+		aJson.addItemToObject(root,"UNPLUG", device);
 	
 	aJsonObject* guid1 = aJson.createObject();
 	aJson.addItemToArray(device, guid1);
@@ -528,7 +591,29 @@ void NinjaObjects::doOnBoardRGB()
 	sprintf(tempColor,"%02X", BLUE_LED_VALUE);
 	strcat(tempSTR,tempColor);
 
-	doJSONData("0", 0, 1000, tempSTR, 0, true);
+	doJSONData("0", 0, 1000, tempSTR, 0, true,0);
+	
+	// Get RGB STATUS LED Value
+	int tempPORTB = PORTB & 0x11;		// Green & Red
+	int tempPORTD = PORTD & 0x80;		// Blue
+	
+	if (tempPORTB & 0x10) 
+		strcpy(tempSTR,"00");
+	else
+		strcpy(tempSTR,"FF");
+		
+	if(tempPORTB & 0x01)
+		strcat(tempSTR,"00");
+	else 
+		strcat(tempSTR,"FF");
+		
+	if(tempPORTD)
+		strcat(tempSTR,"00");
+	else
+		strcat(tempSTR,"FF");
+
+	doJSONData("0", 0,999, tempSTR,0,true,0);
+
 	if (Serial.available()>0) doReactors();
 
 }
@@ -560,7 +645,7 @@ void NinjaObjects::doOnBoardRGB()
 	else
 		strcat(tempSTR,"FF");
 
-	doJSONData("0", 0,1000, tempSTR,0,true);
+	doJSONData("0", 0,1000, tempSTR,0,true,0);
 
 	if (Serial.available()>0) doReactors();
 }
@@ -570,7 +655,7 @@ void NinjaObjects::doOnBoardTemp()
 	float fTemperature=0;
 	if (Serial.available()>0) doReactors();
 	fTemperature =Sensors.getBoardTemperature();
-	doJSONData("0", 0, 1, NULL, fTemperature, false);
+	doJSONData("0", 0, 1, NULL, fTemperature, false,0);
 	if (Serial.available()>0) doReactors();
 }
 
@@ -584,7 +669,7 @@ void NinjaObjects::doOnBoardAccelerometer()
 	MMA.getAccXYZ(&x, &y, &z, true); //get accelerometer readings in normal mode (hi res).
 	sprintf(tempBuffer, "%d,%d,%d", x,y,z);
 
-	doJSONData("0", 0, 2, tempBuffer, 0, true);
+	doJSONData("0", 0, 2, tempBuffer, 0, true,0);
 	if (Serial.available()>0) doReactors();
 }
 #endif
@@ -618,7 +703,7 @@ void NinjaObjects::doLacrosseTX3(unsigned long long tx3value)
 			double realValue=dataValue;
 			realValue=realValue/10;
 			realValue-=50;
-			doJSONData(strAddress, 0, 13, NULL, realValue, false);
+			doJSONData(strAddress, 0, 13, NULL, realValue, false,0);
 		}
 	}
 }
@@ -654,14 +739,14 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 				temperature +=nibble[7] *10;
 				temperature +=nibble[8];
 				temperature =(temperature-300)/10;
-				doJSONData(strAddress, 0, 20, NULL, temperature, false);
+				doJSONData(strAddress, 0, 20, NULL, temperature, false,0);
 				break;
 
 			case 1:		// humidity in %
 				int humidity;
 				humidity  = nibble[6]*10;
 				humidity += nibble[7];
-				doJSONData(strAddress, 0, 21, NULL, humidity, false);
+				doJSONData(strAddress, 0, 21, NULL, humidity, false,0);
 				break;
 
 			case 2:		// total rainfall in mm
@@ -670,7 +755,7 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 				rainfall += nibble[7]<<4;
 				rainfall += nibble[8];
 				rainfall = (rainfall*518)/1000;
-				doJSONData(strAddress, 0, 22, NULL, rainfall, false);
+				doJSONData(strAddress, 0, 22, NULL, rainfall, false,0);
 				break;
 
 			case 3:		// wind direction in NSEW and wind spped in KMH
@@ -680,8 +765,8 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 				windspeed += nibble[6]<<4;
 				windspeed += nibble[7];
 				windspeed =(windspeed/10)*3.6;
-				doJSONData(strAddress, 0, 23, (char *)strWindDirection[windir], 0, true);
-				doJSONData(strAddress, 0, 24, NULL, windspeed, false);
+				doJSONData(strAddress, 0, 23, (char *)strWindDirection[windir], 0, true,0);
+				doJSONData(strAddress, 0, 24, NULL, windspeed, false,0);
 				break;
 
 			default:
@@ -705,17 +790,23 @@ void NinjaObjects::do433(void)
 		if (value == 0) // unknown encoding
 		{
 #ifdef V11
-			doJSONData("1", 0, tempID, "0", 0, true);
+			doJSONData("1", 0, tempID, "0", 0, true,0);
 #endif
 
 #ifdef V12			
-			doJSONData("0", 0, tempID, "0", 0, true);
+			doJSONData("0", 0, tempID, "0", 0, true,0);
 #endif			
 		} 
 		else 
 		{
 			// Blink Green LED to show data valid
+#ifdef V11
 			blinkLED(GREEN_LED_PIN);
+#endif
+
+#ifdef V12
+			blinkLED(GREEN_STAT_LED_PIN);
+#endif
 
 			if(mySwitch.getReceivedProtocol()==3) 
 				doLacrosseTX3(value);
@@ -725,21 +816,21 @@ void NinjaObjects::do433(void)
 			{		
 				if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
 #ifdef V11
-					doJSONData("1", 0, tempID, "0", 0, true);
+					doJSONData("1", 0, tempID, "0", 0, true,0);
 #endif
 
 #ifdef V12					
-					doJSONData("0", 0, tempID, "0", 0, true);
+					doJSONData("0", 0, tempID, "0", 0, true,0);
 #endif
 				else
 				{
 					dec2binWzerofill(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength());
 #ifdef V11
-					doJSONData("1", 0, tempID, strDATA, 0, true);
+					doJSONData("1", 0, tempID, strDATA, 0, true,0);
 #endif
 
 #ifdef V12
-					doJSONData("0", 0, tempID, strDATA, 0, true);
+					doJSONData("0", 0, tempID, strDATA, 0, true,0);
 #endif
 				}
 			}
@@ -747,7 +838,7 @@ void NinjaObjects::do433(void)
 		mySwitch.resetAvailable();
 	}
 	//else
-		//doJSONData("0", 0, tempID, "-1", 0, true);
+		//doJSONData("0", 0, tempID, "-1", 0, true,0);
 
 	if (Serial.available()>0) doReactors();
 }
@@ -764,6 +855,16 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 	// Checking Port 1
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P1),false);
 
+	if ((_lastPort1ID == -1) && (tempID>-1))
+	{
+		iPort1Value=-1;
+		doJSONData("1", 0, tempID, NULL, 0, false, 1);
+		if (tempID==6)
+		{
+			LightSensorCount=0;
+			LightSensorTotalValue=0;		
+		}
+	}
 #ifdef V11
 	if (tempID==11) 
 		mySwitch.enableReceive(RX433_INT);
@@ -783,18 +884,45 @@ boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 		if (tempID>-1)
 		{
 			if (tempID==0)
-				doJSONData("1", 0, tempID, NULL, getIDPinReading(ID_PIN_P1), false);
+				doJSONData("1", 0, tempID, NULL, getIDPinReading(ID_PIN_P1), false,0);
 #ifdef V11
 			else if(tempID==11)	// 433Mhz Receiver
 			{
 				if(_lastPort1ID != tempID)	
-					doJSONData("1",0,tempID, "-1",0,true);
+					doJSONData("1",0,tempID, "-1",0,true,0);
 				do433();
 			}
 #endif
-		else				
-			doJSONData("1", 0, tempID, NULL, Sensors.getSensorValue(1, tempID), false);
+			else
+			{
+				int tempPortValue = Sensors.getSensorValue(1, tempID);
+				
+				if (tempID==6)
+				{
+					LightSensorTotalValue+=tempPortValue;
+					LightSensorCount++;
+					if (LightSensorCount>9)
+					{
+						double tempLightValue =  (LightSensorTotalValue/10)*0.0977;
+						tempLightValue = (int)(tempLightValue*10);
+						tempLightValue = tempLightValue/10;
+						doJSONData("1", 0, tempID, NULL, tempLightValue, false,0);
+						LightSensorCount=0;
+						LightSensorTotalValue=0;
+					}
+				} else if((tempID==5) || (tempID==7) || (tempID==1002))
+				{
+					if (iPort1Value != tempPortValue)
+						doJSONData("1", 0, tempID, NULL, tempPortValue, false,0);
+				}
+				else 
+					doJSONData("1", 0, tempID, NULL, tempPortValue, false,0);
+						
+				iPort1Value=tempPortValue;
+			}
 		}
+		else if(_lastPort1ID>-1)
+			doJSONData("1", 0, _lastPort1ID, NULL, 0, false, 2);
 	}
 	_lastPort1ID=tempID;
 	if (Serial.available()>0) doReactors();
@@ -811,6 +939,18 @@ boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 	if (Serial.available()>0) doReactors();
 	// Checking Port 2
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P2),false);
+
+	if ((_lastPort2ID == -1) && (tempID>-1))
+	{
+		iPort2Value=-1;
+		doJSONData("2", 0, tempID, NULL, 0, false, 1);
+		if (tempID==6)
+		{
+			LightSensorCount=0;
+			LightSensorTotalValue=0;		
+		}
+	}
+	
 	if (tempID==8) 
 	{
 		IsDHT22=true; 
@@ -820,14 +960,42 @@ boolean NinjaObjects::doPort2(byte* DHT22_PORT)
 	}
 	else
 	{
-		if ((tempID>-1) && (tempID !=11))
+		if (tempID !=11)
 		{
-			if (tempID==0)
-				doJSONData("2", 0, tempID, NULL, getIDPinReading(ID_PIN_P2),false);
-			else
+			if (tempID>-1)
 			{
-				doJSONData("2", 0, tempID, NULL, Sensors.getSensorValue(2, tempID),false);
+				if (tempID==0)
+					doJSONData("2", 0, tempID, NULL, getIDPinReading(ID_PIN_P2),false,0);
+				else
+				{
+					int tempPortValue = Sensors.getSensorValue(2, tempID);
+				
+					if (tempID==6)
+					{
+						LightSensorTotalValue+=tempPortValue;
+						LightSensorCount++;
+						if (LightSensorCount>9)
+						{
+							double tempLightValue =  (LightSensorTotalValue/10)*0.0977;
+							tempLightValue = (int)(tempLightValue*10);
+							tempLightValue = tempLightValue/10;
+							doJSONData("2", 0, tempID, NULL, tempLightValue, false,0);
+							LightSensorCount=0;
+							LightSensorTotalValue=0;
+						}
+					} else if((tempID==5) || (tempID==7) || (tempID==1002))
+					{
+						if (iPort2Value != tempPortValue)
+							doJSONData("2", 0, tempID, NULL, tempPortValue, false,0);
+					}
+					else 
+						doJSONData("2", 0, tempID, NULL, tempPortValue, false,0);
+						
+					iPort2Value=tempPortValue;
+				}
 			}
+			else if(_lastPort2ID>-1)
+				doJSONData("2", 0, _lastPort2ID, NULL, 0, false, 2);
 		}
 	}
 	if (Serial.available()>0) doReactors();
@@ -844,6 +1012,18 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 	if (Serial.available()>0) doReactors();			
 	// Checking Port 3
 	tempID=Sensors.idTheType(getIDPinReading(ID_PIN_P3),false);
+
+	if ((_lastPort3ID == -1) && (tempID>-1))
+	{
+		iPort3Value=-1;
+		doJSONData("3", 0, tempID, NULL, 0, false, 1);
+		if (tempID==6)
+		{
+			LightSensorCount=0;
+			LightSensorTotalValue=0;		
+		}
+	}
+
 	if (tempID==8) 
 	{
 		IsDHT22=true; 
@@ -853,14 +1033,42 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 	}
 	else
 	{
-		if ((tempID>-1) && (tempID !=11))
+		if(tempID !=11)
 		{
-			if (tempID==0)
-				doJSONData("3", 0, tempID, NULL, getIDPinReading(ID_PIN_P3), false);
-			else
+			if (tempID>-1)
 			{
-				doJSONData("3", 0, tempID, NULL, Sensors.getSensorValue(3, tempID), false);
+				if (tempID==0)
+					doJSONData("3", 0, tempID, NULL, getIDPinReading(ID_PIN_P3), false,0);
+				else
+				{
+					int tempPortValue = Sensors.getSensorValue(3, tempID);
+				
+					if (tempID==6)
+					{
+						LightSensorTotalValue+=tempPortValue;
+						LightSensorCount++;
+						if (LightSensorCount>9)
+						{
+							double tempLightValue =  (LightSensorTotalValue/10)*0.0977;
+							tempLightValue = (int)(tempLightValue*10);
+							tempLightValue = tempLightValue/10;
+							doJSONData("3", 0, tempID, NULL, tempLightValue, false,0);
+							LightSensorCount=0;
+							LightSensorTotalValue=0;
+						}
+					} else if((tempID==5) || (tempID==7) || (tempID==1002))
+					{
+						if (iPort3Value != tempPortValue)
+							doJSONData("3", 0, tempID, NULL, tempPortValue, false,0);
+					}
+					else 
+						doJSONData("3", 0, tempID, NULL, tempPortValue, false,0);
+						
+					iPort3Value=tempPortValue;
+				}
 			}
+			else if(_lastPort3ID>-1)
+				doJSONData("3", 0, _lastPort3ID, NULL, 0, false, 2);
 		}
 	}
 	_lastPort3ID=tempID;
@@ -882,12 +1090,12 @@ void NinjaObjects::doDHT22(byte port)
 	
 	if ((intHumidity>0) && (intHumidity<2000))
 	{
-		doJSONData(tempBuffer, 0, 8, NULL, (float)intHumidity/10, false);
+		doJSONData(tempBuffer, 0, 8, NULL, (float)intHumidity/10, false,0);
 		IgnoreHeartbeatDelay=false;		// Successfully sent, now obey heartbeat
 
 		if ((intTemperature>0) && (intTemperature<2000))
 		{
-			doJSONData(tempBuffer, 0,9,NULL,(float)intTemperature/10, false);
+			doJSONData(tempBuffer, 0,9,NULL,(float)intTemperature/10, false,0);
 		}
 	}
 	

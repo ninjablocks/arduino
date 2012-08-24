@@ -2,6 +2,14 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+24th August 2012 by JP Liew
+	- added RGB Status light support
+	- added DID 999 for V12 status RGB
+	- added PLUGIN and UNPLUG events
+	- changed doJSONData() to support, DEVICE, PLUGIN and UNPLUG event in one function
+	- changed sensor to only send on changed event, except Distance, Light and Sound
+	- changed Light sensor to report value from 0% to 100%, in a 10 average reading
+
 20th August 2012 by JP Liew
 	- changed doOnBoardRGB(), doOnBoardTemperature(), doDHT22() to slow down to 30 seconds per update
 	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay

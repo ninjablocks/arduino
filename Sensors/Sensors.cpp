@@ -110,9 +110,17 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 5:
 			// Push Button Sensor
 			pinMode(dInPin, INPUT);
-			sensorValue = digitalRead(dInPin) * 1023;
+			sensorValue = digitalRead(dInPin);
 			if (sensorValue==0)
+				
+#ifdef V11				
 				nOBJECTS.blinkLED(BLUE_LED_PIN);
+#endif
+
+#ifdef V12				
+				nOBJECTS.blinkLED(BLUE_STAT_LED_PIN);
+#endif
+
 			return sensorValue;
 		
 		case 6:
@@ -124,8 +132,17 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 7:
 			// PIR Sensor
 			pinMode(dInPin, INPUT);
-			sensorValue = digitalRead(dInPin) * 1023;
-			if (sensorValue>0) nOBJECTS.blinkLED(GREEN_LED_PIN);
+			sensorValue = digitalRead(dInPin);
+			if (sensorValue>0)
+				
+#ifdef V11
+				nOBJECTS.blinkLED(GREEN_LED_PIN);
+#endif
+
+#ifdef V12
+				nOBJECTS.blinkLED(GREEN_STAT_LED_PIN);
+#endif
+
 			return sensorValue;
 
 		case 8:
@@ -159,7 +176,16 @@ int SENSORS::getSensorValue(byte port, int deviceID)
 		case 12:
 			pinMode(aInPin, INPUT);
 			sensorValue = analogRead(aInPin);
-			if (sensorValue>0) nOBJECTS.blinkLED(RED_LED_PIN);
+			if (sensorValue>0)
+
+#ifdef V11
+				nOBJECTS.blinkLED(RED_LED_PIN);
+#endif
+
+#ifdef V12
+				nOBJECTS.blinkLED(RED_STAT_LED_PIN);
+#endif
+
 			return sensorValue;
 
 		case 1002:

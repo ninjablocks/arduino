@@ -44,7 +44,7 @@ class NinjaObjects {
 		void doOnBoardRGB();
 		void doJSONResponse();
 		void doJSONError(int errorCode);
-		void doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString);
+		void doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString, byte dataTYPE);
 		boolean doPort1(byte* port);
 		boolean doPort2(byte* port);
 		boolean doPort3(byte* port);

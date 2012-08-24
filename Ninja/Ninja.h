@@ -4,9 +4,9 @@
 // This part defines which version to use when compile
 // Only one define is allowed.
 
-//#define V11					1
-#define V12				1
-#define VERSION_NO 	"041"
+#define V11					1
+//#define V12				1
+#define VERSION_NO 	"042"
 
 #if defined(V12) && defined(V11)  
 #error Please select only a version by setting either V11 or V12.
@@ -27,8 +27,14 @@
 #define RED_LED_PIN 	10
 #define GREEN_LED_PIN 11
 #define BLUE_LED_PIN 	9
+
+#define RED_STAT_LED_PIN 		12
+#define GREEN_STAT_LED_PIN 	8
+#define BLUE_STAT_LED_PIN 	7
+
 #define RX433_INT 		0
 #define TX433_PIN 		4
+
 #endif
 
 // Analog PIN Port 1
