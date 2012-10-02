@@ -11,6 +11,7 @@
 void setup()
 {
 	Serial.begin(9600);
+	Serial.println();
 	pinMode(RED_LED_PIN, OUTPUT);
 	pinMode(GREEN_LED_PIN, OUTPUT);
 	pinMode(BLUE_LED_PIN, OUTPUT);

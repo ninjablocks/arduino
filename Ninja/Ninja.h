@@ -6,7 +6,8 @@
 
 #define V11					1
 //#define V12				1
-#define VERSION_NO 	"042"
+#define VERSION_NO 	"0.43"
+//#define TESTER	1
 
 #if defined(V12) && defined(V11)  
 #error Please select only a version by setting either V11 or V12.
@@ -59,12 +60,14 @@
 #define IO_PIN_P1_2		17
 #define IO_PIN_P1_3		3
 
-// Digital PIN Port 2.  NOTE: There is no IO_PIN_P2_2 because this is a pure analog pin ADC6
+// Digital PIN Port 2.  NOTE: There is no digitalRead on IO_PIN_P2_2 because this is a pure analog pin ADC6
 #define IO_PIN_P2_1		15
+#define IO_PIN_P2_2		A6
 #define IO_PIN_P2_3		5
 
-// Digital PIN Port 3.  NOTE: There is no IO_PIN_P3_2 because this is a pure analog pin ADC7
+// Digital PIN Port 3.  NOTE: There is no digitalRead on IO_PIN_P3_2 because this is a pure analog pin ADC7
 #define IO_PIN_P3_1		16
+#define IO_PIN_P3_2		A7
 #define IO_PIN_P3_3		6
 
 #endif

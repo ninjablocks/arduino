@@ -72,6 +72,10 @@ int iPort3Value=-1;
 byte LightSensorCount=0;
 int LightSensorTotalValue=0;
 
+#ifdef TESTER
+boolean Enable433Receive =false;
+#endif
+
 #ifdef V12
 byte RED_LED_VALUE =0;
 byte GREEN_LED_VALUE=0;
@@ -310,7 +314,7 @@ void NinjaObjects::doReactors()
 			{
 				switch (intDID)
 				{
-					case 999:
+					case 999:		// On Board status LED
 					{
 						long colorVal = strtol(strDATA, NULL, 16);
 
@@ -389,7 +393,7 @@ void NinjaObjects::doReactors()
 						break;
 					}
 					
-					case 1002:
+					case 1002:				// Relay
 					{
 						byte portPIN = atoi(strGUID);
 						byte triggerPIN = -1;
@@ -424,7 +428,7 @@ void NinjaObjects::doReactors()
 						break;
 					}
 					
-					case 1003:
+					case 1003:			// Firmware version number
 					{
 						if (strcmp(strDATA,"VNO")==0)
 						{
@@ -444,7 +448,123 @@ void NinjaObjects::doReactors()
 							doJSONError(4);
 						break;	
 					}
+
+#ifdef TESTER
+					case 8888:			// Tester Read IO command
+						if (intVID==0)
+						{
+							byte portPIN = atoi(strGUID);
+							byte portDATA =0;
+							int analogDATA=0;
+							switch (portPIN)
+							{
+								case 1:
+									pinMode(IO_PIN_P1_1, INPUT);
+									pinMode(IO_PIN_P1_2, INPUT);
+									pinMode(IO_PIN_P1_3, INPUT);
+									delay(10);
+									portDATA = digitalRead(IO_PIN_P1_1)<<2;
+									portDATA |= digitalRead(IO_PIN_P1_2)<<1;
+									portDATA |= digitalRead(IO_PIN_P1_3);
+									intDATA=portDATA;
+									doJSONResponse();
+									break; 
+							
+								case 2:
+									pinMode(IO_PIN_P2_1, INPUT);
+									pinMode(IO_PIN_P2_2, INPUT);
+									pinMode(IO_PIN_P2_3, INPUT);
+									delay(10);
+									portDATA = digitalRead(IO_PIN_P2_1)<<2;
+									analogDATA = analogRead(IO_PIN_P2_2);
+									if (analogDATA>1010)
+										portDATA |= 1 <<1;
+									portDATA |= digitalRead(IO_PIN_P2_3);
+									intDATA=portDATA;
+									doJSONResponse();
+									break; 
+									
+								case 3:
+									pinMode(IO_PIN_P3_1, INPUT);
+									pinMode(IO_PIN_P3_2, INPUT);
+									pinMode(IO_PIN_P3_3, INPUT);
+									delay(10);
+									portDATA = digitalRead(IO_PIN_P3_1)<<2;
+									analogDATA = analogRead(IO_PIN_P3_2);
+									if (analogDATA>1010)
+										portDATA |= 1 <<1;
+									portDATA |= digitalRead(IO_PIN_P3_3);
+									intDATA=portDATA;
+									doJSONResponse();
+									break; 
+								
+								default:
+									doJSONError(3);
+							}
+						}
+						else
+							doJSONError(3);
+						break;
 					
+					case 8889:
+						if (intVID==0)
+						{
+							byte portPIN = atoi(strGUID);
+							byte portDATA =0;
+							switch (portPIN)
+							{
+								case 1:
+									pinMode(IO_PIN_P1_1, OUTPUT);
+									pinMode(IO_PIN_P1_2, OUTPUT);
+									pinMode(IO_PIN_P1_3, OUTPUT);
+									delay(10);
+									digitalWrite(IO_PIN_P1_1,(intDATA &  4)>>2);
+									digitalWrite(IO_PIN_P1_2,(intDATA &  2)>>1);
+									digitalWrite(IO_PIN_P1_3,(intDATA &  1));
+									doJSONResponse();
+									break;
+								
+								default:
+									doJSONError(3);
+							}
+						}
+						else
+							doJSONError(3);
+						break;
+						
+					case 8890:
+						if (intVID==0)
+						{
+							byte portDATA =0;
+							
+							if (IsDATAString)
+							{
+								portDATA = atoi(strDATA);
+							}
+							else
+							{
+								portDATA = intDATA;
+							}
+							
+							if (portDATA==0)
+							{
+								Enable433Receive=false;
+								mySwitch.disableReceive();
+							}
+							
+							if (portDATA==1)
+							{
+								Enable433Receive=true;
+							}
+								
+							
+							doJSONResponse();
+						}
+						else
+							doJSONError(3);
+						break;
+						
+#endif
 					default:
 						doJSONError(3);		// unknown device id
 						break;		
@@ -1104,6 +1224,8 @@ void NinjaObjects::doDHT22(byte port)
 
 void NinjaObjects::sendObjects() 
 {
+
+#ifndef TESTER
 	boolean IsDHT22=false;
 	byte DHT22_PORT=0;
 
@@ -1143,4 +1265,10 @@ void NinjaObjects::sendObjects()
 
 	_lastHeartbeat=currentHeartbeat;
 	}
+#else
+	if (Enable433Receive)
+		do433();
+#endif
+
+
 }

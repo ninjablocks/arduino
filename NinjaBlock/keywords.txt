@@ -1,0 +1,28 @@
+#######################################
+# Syntax Coloring Map For NinjaBlock
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+NinjaBlock	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin			KEYWORD2
+send			KEYWORD2
+host			KEYWORD2
+nodeID		KEYWORD2
+token			KEYWORD2
+guid			KEYWORD2
+port			KEYWORD2
+vendorID	KEYWORD2
+deviceID	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
