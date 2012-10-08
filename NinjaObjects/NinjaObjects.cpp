@@ -37,20 +37,21 @@ const char strWindDirection[16][4] =
 	"W", "WNW", "NW", "NNW"
 };
 
+/*
 struct __freelist
 {
 	size_t sz;
 	struct __freelist *nx;
 };
-
+*/
 
 // Variables need to be moved to private or public part of the object - TODO
-uint16_t biggest;
+//uint16_t biggest;
 NinjaObjects nOBJECTS;
 char serInStr[recvLEN];  // array to hold the incoming serial string bytes
 
-extern char * const __brkval;
-extern struct __freelist *__flp;
+//extern char * const __brkval;
+//extern struct __freelist *__flp;
 
 char strGUID[GUID_LEN];
 int intVID=0;
@@ -160,6 +161,8 @@ void dec2binWzerofill(char* bin, unsigned long long Dec, unsigned int bitLength)
 	return;
 }
 
+
+/*
 // given a PROGMEM string, use Serial.print() to send it out
 // this is needed to save precious memory
 //thanks to todbot for this http://todbot.com/blog/category/programming/
@@ -175,7 +178,9 @@ void printProgStr(const prog_char* str) {
 		str++;
 	}
 }
+*/
 
+/*
 uint16_t freeMem(uint16_t *biggest)
 {
 	char *brkval;
@@ -211,6 +216,7 @@ void freeMem(char* message)
 	Serial.print(":\t");
 	Serial.println(freeMem(&biggest));
 }
+*/
 
 
 //read a string from the serial and store it in an array
@@ -589,7 +595,7 @@ void NinjaObjects::doJSONError(int errorCode)
 	aJsonObject* root = aJson.createObject();
 	if (root == NULL)
 	{
-		Serial.println("error root"); 
+		//Serial.println("error root"); 
 		return;
 	}
 
@@ -615,7 +621,7 @@ void NinjaObjects::doJSONResponse()
 	aJsonObject* root = aJson.createObject();
 	if (root == NULL)
 	{
-		Serial.println("error root"); 
+		//Serial.println("error root"); 
 		return;
 	}
 
@@ -653,7 +659,7 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 	aJsonObject* root = aJson.createObject();
 	if (root == NULL)
 	{
-		Serial.println("error root"); 
+		//Serial.println("error root"); 
 		return;
 	}
 
@@ -794,6 +800,37 @@ void NinjaObjects::doOnBoardAccelerometer()
 }
 #endif
 
+void NinjaObjects::doWT450(unsigned long long value)
+{
+	char strAddress[5];
+	unsigned long data;
+	int house=0;
+	byte station=0;
+	int humidity=0;
+	double temperature=0;
+	double tempdecimal=0;
+	byte tempfraction=0;
+
+	data=(unsigned long)value;
+
+	house=(data>>28) & (0x0f);
+	station=((data>>26) & (0x03))+1;
+	humidity=(data>>16)&(0xff);
+	temperature=((data>>8) & (0xff))-50;
+	tempfraction=(data>>4) & (0x0f);
+
+	tempdecimal=((tempfraction>>3 & 1) * 0.5) + ((tempfraction>>2 & 1) * 0.25) + ((tempfraction>>1 & 1) * 0.125) + ((tempfraction & 1) * 0.0625);
+	temperature=temperature+tempdecimal;
+	temperature=(int)(temperature*10);
+	temperature=temperature/10;
+
+	sprintf(strAddress,"%02d%02d", house, station);
+	
+	doJSONData(strAddress, 0, 30, NULL, humidity, false,0);
+	doJSONData(strAddress, 0, 31, NULL, temperature, false,0);
+	
+}
+
 void NinjaObjects::doLacrosseTX3(unsigned long long tx3value)
 {
 	byte nibble[10];
@@ -904,7 +941,7 @@ void NinjaObjects::do433(void)
 
 	mySwitch.enableReceive(RX433_INT);
 
-	if (mySwitch.available()) 
+	if (mySwitch.available() && (mySwitch.getReceivedProtocol()>0 && mySwitch.getReceivedProtocol()<6))
 	{
 		unsigned long long value = mySwitch.getReceivedValue();
 		if (value == 0) // unknown encoding
@@ -932,6 +969,8 @@ void NinjaObjects::do433(void)
 				doLacrosseTX3(value);
 			else if (mySwitch.getReceivedProtocol()==4)
 				doLacrosseWS2355(value);
+			else if(mySwitch.getReceivedProtocol()==5)
+				doWT450(value);
 			else
 			{		
 				if (mySwitch.getReceivedBitlength()> (DATA_LEN/2))
@@ -1195,6 +1234,7 @@ boolean NinjaObjects::doPort3(byte* DHT22_PORT)
 	if (Serial.available()>0) doReactors();
 	return IsDHT22;
 }
+
 
 void NinjaObjects::doDHT22(byte port)
 {

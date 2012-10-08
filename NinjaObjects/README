@@ -2,6 +2,9 @@ NinjaObjects.cpp - Ninja Objects library
   
 Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
 
+8th October 2012 by JP Liew
+	- added doWT450()to decode house, station, humidity & temp from raw data
+
 2nd October 2012 by JP Liew
 	- added TESTER code for Ninja Cape to test another fresh cape out from production
 	- added DID 8888,8889,8890 to support special command for TESTER to send/receive signal

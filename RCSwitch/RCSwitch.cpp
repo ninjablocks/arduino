@@ -131,11 +131,12 @@ void RCSwitch::disableTransmit()
  * @param nGroup   Number of group (1..4)
  * @param nDevice  Number of device (1..4)
   */
+/*
 void RCSwitch::switchOn(char sFamily, int nGroup, int nDevice)
 {
 	this->sendTriState( this->getCodeWordC(sFamily, nGroup, nDevice, true) );
 }
-
+*/
 /**
  * Switch a remote switch off (Type C Intertechno)
  *
@@ -143,55 +144,62 @@ void RCSwitch::switchOn(char sFamily, int nGroup, int nDevice)
  * @param nGroup   Number of group (1..4)
  * @param nDevice  Number of device (1..4)
  */
+/*
 void RCSwitch::switchOff(char sFamily, int nGroup, int nDevice)
 {
 	this->sendTriState( this->getCodeWordC(sFamily, nGroup, nDevice, false) );
 }
-
+*/
 /**
  * Switch a remote switch on (Type B with two rotary/sliding switches)
  *
  * @param nAddressCode  Number of the switch group (1..4)
  * @param nChannelCode  Number of the switch itself (1..4)
  */
+/*
 void RCSwitch::switchOn(int nAddressCode, int nChannelCode)
 {
 	this->sendTriState( this->getCodeWordB(nAddressCode, nChannelCode, true) );
 }
-
+*/
 /**
  * Switch a remote switch off (Type B with two rotary/sliding switches)
  *
  * @param nAddressCode  Number of the switch group (1..4)
  * @param nChannelCode  Number of the switch itself (1..4)
  */
+
+/*
 void RCSwitch::switchOff(int nAddressCode, int nChannelCode)
 {
 	this->sendTriState( this->getCodeWordB(nAddressCode, nChannelCode, false) );
 }
-
+*/
 /**
  * Switch a remote switch on (Type A with 10 pole DIP switches)
  *
  * @param sGroup        Code of the switch group (refers to DIP switches 1..5 where "1" = on and "0" = off, if all DIP switches are on it's "11111")
  * @param nChannelCode  Number of the switch itself (1..4)
  */
+ 
+/*
 void RCSwitch::switchOn(char* sGroup, int nChannel)
 {
 	this->sendTriState( this->getCodeWordA(sGroup, nChannel, true) );
 }
-
+*/
 /**
  * Switch a remote switch off (Type A with 10 pole DIP switches)
  *
  * @param sGroup        Code of the switch group (refers to DIP switches 1..5 where "1" = on and "0" = off, if all DIP switches are on it's "11111")
  * @param nChannelCode  Number of the switch itself (1..4)
  */
+/*
 void RCSwitch::switchOff(char* sGroup, int nChannel)
 {
 	this->sendTriState( this->getCodeWordA(sGroup, nChannel, false) );
 }
-
+*/
 /**
  * Returns a char[13], representing the Code Word to be send.
  * A Code Word consists of 9 address bits, 3 data bits and one sync bit but in our case only the first 8 address bits and the last 2 data bits were used.
@@ -208,6 +216,8 @@ void RCSwitch::switchOff(char* sGroup, int nChannel)
  *
  * @return char[13]
  */
+
+/* 
 char* RCSwitch::getCodeWordB(int nAddressCode, int nChannelCode, boolean bStatus)
 {
 	int nReturnPos = 0;
@@ -244,11 +254,12 @@ char* RCSwitch::getCodeWordB(int nAddressCode, int nChannelCode, boolean bStatus
 
 	return sReturn;
 }
-
+*/
 
 /**
  * Like getCodeWord  (Type A)
  */
+/*
 char* RCSwitch::getCodeWordA(char* sGroup, int nChannelCode, boolean bStatus)
 {
 	int nReturnPos = 0;
@@ -295,10 +306,13 @@ char* RCSwitch::getCodeWordA(char* sGroup, int nChannelCode, boolean bStatus)
 
 	return sReturn;
 }
+*/
 
 /**
  * Like getCodeWord (Type C = Intertechno)
  */
+
+/*
 char* RCSwitch::getCodeWordC(char sFamily, int nGroup, int nDevice, boolean bStatus)
 {
 	static char sReturn[13];
@@ -334,6 +348,7 @@ char* RCSwitch::getCodeWordC(char sFamily, int nGroup, int nDevice, boolean bSta
 	sReturn[nReturnPos] = '\0';
 	return sReturn;
 }
+*/
 
 /**
  * Sends a Code Word
@@ -363,11 +378,12 @@ void RCSwitch::sendTriState(char* sCodeWord)
 		this->sendSync();
 	}
 }
-
+/*
 void RCSwitch::send(unsigned long Code, unsigned int length)
 {
 	this->send( this->dec2binWzerofill(Code, length) );
 }
+*/
 
 void RCSwitch::send(char* sCodeWord)
 {
@@ -513,6 +529,7 @@ void RCSwitch::enableReceive(int interrupt)
 	this->enableReceive();
 }
 
+
 void RCSwitch::enableReceive()
 {
 	if (this->nReceiverInterrupt != -1)
@@ -522,6 +539,7 @@ void RCSwitch::enableReceive()
 		attachInterrupt(this->nReceiverInterrupt, handleInterrupt, CHANGE);
 	}
 }
+
 
 /**
  * Disable receiving data
@@ -596,8 +614,8 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 		}
 	}
 	code = code >> 1;
-	if (changeCount > 6) 
-	{    // ignore < 4bit values as there are no devices sending 4bit values => noise
+	if (changeCount >47) 
+	{
 		if(code>0)
 		{
 			RCSwitch::nReceivedValue = code;
@@ -613,6 +631,7 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 		return true;
 }
 
+/*
 bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 {
 
@@ -639,8 +658,8 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 		}
 		}
 		code = code >> 1;
-		if (changeCount > 6) 
-		{    // ignore < 4bit values as there are no devices sending 4bit values => noise
+		if (changeCount > 47) 
+		{
 			if(code>0)
 			{
 				RCSwitch::nReceivedValue = code;
@@ -655,10 +674,71 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 	else
 		return true;
 }
+*/
+bool RCSwitch::receiveWT450(unsigned int changeCount)
+{
+	unsigned long long code = 0ull;
+	unsigned int HighWidth = 2000;
+	unsigned int LowWidth = 1000;
+	unsigned int delayTolerance = 300;
+	unsigned int bitLength=0;
+
+	for (int i = 1; i<changeCount ; i++) 
+	{
+		if (RCSwitch::timings[i] > HighWidth-delayTolerance && RCSwitch::timings[i] < HighWidth+delayTolerance) 
+		{
+			code = code << 1;
+			bitLength++;
+		}
+		else if ( RCSwitch::timings[i] > LowWidth-delayTolerance && RCSwitch::timings[i] < LowWidth+delayTolerance) 
+		{
+			if ( RCSwitch::timings[i+1] > LowWidth-delayTolerance && RCSwitch::timings[i+1] < LowWidth+delayTolerance) 
+			{
+				code+=1;
+				code = code << 1;
+				i++;
+				bitLength++;
+			}
+			else
+			{
+				// Failed 
+				i = changeCount;
+			}
+		}
+		else
+		{
+			// Failed
+			i = changeCount;
+			if (i<50)	
+			{
+				code = 0;
+			}
+		}
+
+	}
+		
+	code = code >> 1;
+	if ((changeCount > 50) && (bitLength==36))
+	{
+		// there is no checksum of this unit, so using preamble and 2 fixed bits to check
+		// Preamble= 1100 (first four bits)
+		if( code & 0xC03000000ull)
+		{
+			RCSwitch::nReceivedValue = code;
+			RCSwitch::nReceivedBitlength = bitLength;
+			RCSwitch::nReceivedDelay = 1000;
+			RCSwitch::nReceivedProtocol = 5;
+			return true;
+		}
+		else 
+			return false;
+	}
+	else
+		return false;
+}
 
 bool RCSwitch::receiveLaCrosse(unsigned int changeCount)
 {
-
 	unsigned long long code = 0ull;
 	unsigned long delay = RCSwitch::timings[0] / 3;
 	//unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
@@ -669,17 +749,12 @@ bool RCSwitch::receiveLaCrosse(unsigned int changeCount)
 
 	for (int i = 1; i<changeCount ; i=i+2) 
 	{
-		// delay = 145 , delayTolerance = 87
-		//Serial.print(RCSwitch::timings[i]);
-		//Serial.print(",");
 		if (RCSwitch::timings[i] > HighWidth-delayTolerance && RCSwitch::timings[i] < HighWidth+delayTolerance) 
 		{
-			//Serial.print("0");
 			code = code << 1;
 		}
 		else if ( RCSwitch::timings[i] > LowWidth-delayTolerance && RCSwitch::timings[i] < LowWidth+delayTolerance) 
 		{
-			//Serial.print("1");
 			code+=1;
 			code = code << 1;
 		}
@@ -690,10 +765,10 @@ bool RCSwitch::receiveLaCrosse(unsigned int changeCount)
 			code = 0;
 			}
 	}
-		
+
 	code = code >> 1;
 	if (changeCount > 80) 
-	{    // ignore < 4bit values as there are no devices sending 4bit values => noise
+	{
 		if(code>0)
 		{
 			RCSwitch::nReceivedValue = code;
@@ -708,7 +783,6 @@ bool RCSwitch::receiveLaCrosse(unsigned int changeCount)
 		}
 	}
 
-	//Serial.println();
 	if (code == 0)
 		return false;
 	else
@@ -718,7 +792,6 @@ bool RCSwitch::receiveLaCrosse(unsigned int changeCount)
 
 void RCSwitch::handleInterrupt()
 {
-
 	static unsigned int duration;
 	static unsigned int changeCount;
 	static unsigned long lastTime;
@@ -726,18 +799,15 @@ void RCSwitch::handleInterrupt()
 
 	long time = micros();
 	duration = time - lastTime;
-
 //  if (duration > 5000 && duration > RCSwitch::timings[0] - 200 && duration < RCSwitch::timings[0] + 200) {
 	if (duration > 5000 && RCSwitch::timings[0]>5000) 
 	{
 		repeatCount++;
-		//changeCount--;
-        		//digitalWrite(15,HIGH);
+
 		if ((repeatCount == 1)) 
 		{
 			if(changeCount>20)
 			{
-				//digitalWrite(15,HIGH);
 				if (changeCount>80)
 				{
 					if (receiveLaCrosse(changeCount) == false)
@@ -745,27 +815,32 @@ void RCSwitch::handleInterrupt()
 						//failed
 					}
 				}
+				else if (changeCount>50)
+				{
+						if (receiveWT450(changeCount) == false)
+						{
+							// failed
+						}
+				}
 				else 
 				{
 					changeCount--;
 					if (receiveProtocol1(changeCount) == false)
 					{
-						if (receiveProtocol2(changeCount) == false)
-						{
-						}
+						//if (receiveProtocol2(changeCount) == false)
+						//{
+					//	}
 					}		
 				}
 			}
 			repeatCount = 0;
 		}
 		changeCount = 0;
-		//digitalWrite(15,LOW);
 	} 
-	else if (duration > 3000) 
+	else if (duration > 5000) 
 	{
 		changeCount = 0;
 		repeatCount=0;
-		//digitalWrite(6,LOW);
 	}
 
 	if (changeCount >= RCSWITCH_MAX_CHANGES) 
@@ -780,6 +855,7 @@ void RCSwitch::handleInterrupt()
 /**
   * Turns a decimal value to its binary representation
   */
+/*
 char* RCSwitch::dec2binWzerofill(unsigned long Dec, unsigned int bitLength)
 {
 	static char bin[64];
@@ -806,4 +882,4 @@ char* RCSwitch::dec2binWzerofill(unsigned long Dec, unsigned int bitLength)
 
 	return bin;
 }
-
+*/

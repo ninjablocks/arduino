@@ -86,6 +86,7 @@ aJsonClass::deleteItem(aJsonObject *c)
 }
 
 // Parse the input text to generate a number, and populate the result into item.
+
 int
 aJsonClass::parseNumber(aJsonObject *item, FILE* stream)
 {
@@ -609,6 +610,7 @@ aJsonClass::printValue(aJsonObject *item, FILE* stream)
 }
 
 // Build an array from input text.
+
 int
 aJsonClass::parseArray(aJsonObject *item, FILE* stream, char** filter)
 {

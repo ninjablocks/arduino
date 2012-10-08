@@ -53,6 +53,7 @@ class NinjaObjects {
 		void do433(void);
 		void doLacrosseTX3(unsigned long long tx3value);
 		void doLacrosseWS2355(unsigned long long ws2344value);
+		void doWT450(unsigned long long value);
 };
 
 extern NinjaObjects nOBJECTS;
