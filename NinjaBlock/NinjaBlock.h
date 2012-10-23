@@ -4,6 +4,8 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
+#define DATA_SIZE 256
+
 class NinjaBlockClass {
 	
 public:
@@ -11,6 +13,7 @@ public:
 	char *nodeID;
 	char *token;
 	char *guid;
+	char data[DATA_SIZE];
 	int port;
 	int vendorID;
 	int deviceID;
@@ -27,6 +30,7 @@ public:
 	int begin();
 	void send(int data);
 	void send(char *data);
+	boolean receive(void);
 };
 
 extern NinjaBlockClass NinjaBlock; 
