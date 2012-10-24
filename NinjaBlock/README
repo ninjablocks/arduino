@@ -18,7 +18,7 @@ In order to initialise the NinjaBlock library, users need to get the following f
 
 	How to use this example
 	-----------------------
-	1) Collect all the above parameters from help@ninjablocks
+	1) Collect all the above parameters from help@ninjablocks.com
 
 	2) A Freetronics Etherten or an Arduino with ethernet shield is required.  Digital Pin 3 and 5 are used as a sensor trigger, connect them to ground to trigger a command send to Ninja Cloud.  (For a better result, please implement a debounce for these pins)
 
