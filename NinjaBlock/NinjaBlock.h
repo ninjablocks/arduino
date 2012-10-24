@@ -27,20 +27,11 @@ public:
 	char strDATA[DATA_LEN];
 	boolean IsDATAString;
 	
-	/*
-	void setNodeID(char *nodeID);
-	void setToken(char *token);
-	void setGUID(char *guid);
-	void setVendorID(uint16_t vendorID);
-	void setDeviceID(uint16_t deviceID);
-	*/
-	
-	//void setParams(char *nodeID, char *token, char *guid, uint16_t vendorID, uint16_t deviceID);
 	int begin();
 	void send(int data);
 	void send(char *data);
 	boolean receive(void);
-	void httppost(String postData);
+	void httppost(char *postData);
 	boolean decodeJSON();
 	
 };

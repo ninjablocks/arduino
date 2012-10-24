@@ -90,36 +90,51 @@ boolean NinjaBlockClass::decodeJSON()
 		return false;
 }
 
-
-void NinjaBlockClass::httppost(String postData)
+void NinjaBlockClass::httppost(char *postData)
 {
-	String strData;
+	//String strData;
+	char strData[DATA_SIZE];
 	
 	for (int i=0;i <3;i++)
 	{
 		if(client.connected())
 		{		
-			strData="POST /rest/v0/block/" + (String)nodeID + "/data HTTP/1.1\n";
+			strcpy(strData,"POST /rest/v0/block/");
+			strcat(strData,nodeID);
+			strcat(strData, "/data HTTP/1.1\r\n");
 			client.print(strData);
-			strData = "Host: " + (String)host + ":" + port + "\n";
+			strcpy(strData, "User-Agent: Ninja Block 1.1\r\n");
 			client.print(strData);
-			client.print("Content-Type: application/json\n");
-			client.print("Accept: application/json\n");
+			strcpy(strData,"Host: "); 
+			strcat(strData ,host);
+			strcat(strData, "\r\n");
+			client.print(strData);
+			client.print("Content-Type: application/json\r\n");
+			client.print("Accept: application/json\r\n");
 			//client.println("Connection: close\n");
-			strData="X-Ninja-Token: " + (String)token + "\n";
+			strcpy(strData,"X-Ninja-Token: ");
+			strcat(strData,token);
+			strcat(strData,"\r\n");
 			client.print(strData);
 			client.print("Content-Length: ");
-//			strData="{\"GUID\": \"" + (String)nodeID + "_" + (String)guid + "_" + vendorID + "_" + deviceID + "\",\"G\": \"" + (String)guid + "\",\"V\": " + vendorID + ",\"D\": " + deviceID + ",\"DA\": " + data + "}";
-			client.println(postData.length(), DEC);
+			client.println(strlen(postData));
 			client.println();
 			client.println(postData);	
 			Serial.print("\nSent=");
 			Serial.println(postData);
+			
+			while(client.available())
+			{
+				// httppost will return a HTTP response, if a device needs to process the return,
+				// this is the place code should be added to do the processing
+				// at the moment, we just clear all the buffer to prevent http read buffer being overflow
+				char c = client.read();
+			}
 			return;
 		}
 		else
 		{
-			Serial.print("Not connected to server, connecting now...try ");
+			Serial.print("NC to post server, try ");
 			Serial.println(i+1);
 			client.stop();
 			client.connect(host,port);
@@ -129,22 +144,67 @@ void NinjaBlockClass::httppost(String postData)
 
 void NinjaBlockClass::send(char *data)
 {
-	String strSend;
-	strSend="{\"GUID\": \"" + (String)nodeID + "_" + (String)guid + "_" + vendorID + "_" + deviceID + "\",\"G\": \"" + (String)guid + "\",\"V\": " + vendorID + ",\"D\": " + deviceID + ",\"DA\": \"" + (String)data + "\"}";
+	char strSend[DATA_SIZE];
+	char strNumber[6];
+	
+	strcpy(strSend,"{\"GUID\": \"");
+	strcat(strSend,nodeID);
+	strcat(strSend, "_" );
+	strcat(strSend,guid);
+	strcat(strSend, "_");
+	itoa(vendorID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, "_");
+	itoa(deviceID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, "\",\"G\": \"");
+	strcat(strSend, guid);
+	strcat(strSend, "\",\"V\": ");
+	itoa(vendorID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend,",\"D\": ");
+	itoa(deviceID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, ",\"DA\": \"");
+	strcat(strSend, data);
+	strcat(strSend, "\"}");
 	httppost(strSend);
 }
 
 void NinjaBlockClass::send(int data)
 {
-	String strSend;
-	strSend="{\"GUID\": \"" + (String)nodeID + "_" + (String)guid + "_" + vendorID + "_" + deviceID + "\",\"G\": \"" + (String)guid + "\",\"V\": " + vendorID + ",\"D\": " + deviceID + ",\"DA\": " + data + "}";
+	char strSend[DATA_SIZE];
+	char strNumber[6];
+	
+	strcpy(strSend,"{\"GUID\": \"");
+	strcat(strSend,nodeID);
+	strcat(strSend, "_" );
+	strcat(strSend,guid);
+	strcat(strSend, "_");
+	itoa(vendorID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, "_");
+	itoa(deviceID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, "\",\"G\": \"");
+	strcat(strSend, guid);
+	strcat(strSend, "\",\"V\": ");
+	itoa(vendorID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend,",\"D\": ");
+	itoa(deviceID, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, ",\"DA\": ");
+	itoa(data, strNumber, 10);
+	strcat(strSend, strNumber);
+	strcat(strSend, "}");
 	httppost(strSend);
 }
 
 boolean NinjaBlockClass::receive(void)
 {
-	String strData;
-	//Serial.println("receive.");
+	char strData[DATA_SIZE];
+
 	for (int i=0;i <3;i++)
 	{
 		if(recvclient.connected())
@@ -166,6 +226,7 @@ boolean NinjaBlockClass::receive(void)
 				while(recvclient.available())
 				{
 					char c= recvclient.read();
+					//Serial.print(c,HEX);
 					if (count<DATA_SIZE)
 					{
 						data[count]=c;
@@ -186,7 +247,7 @@ boolean NinjaBlockClass::receive(void)
 									{
 										gotData=true;
 									}
-									exit;
+									return gotData;
 								}
 								else
 								{
@@ -197,23 +258,29 @@ boolean NinjaBlockClass::receive(void)
 						}
 					}
 				}
+
 			}
 			return gotData;
 		}
 		else
 		{
-			Serial.print("Not connected to server, connecting now...try ");
+			Serial.print("NC to recv server, try ");
 			Serial.println(i+1);
 			recvclient.stop();
 			if(recvclient.connect(host,port)==1)
 			{
-				strData="GET /rest/v0/block/" + (String)nodeID + "/commands HTTP/1.1\n";
+				strcpy(strData,"GET /rest/v0/block/");
+				strcat(strData, nodeID);
+				strcat(strData, "/commands HTTP/1.1\r\n");
 				recvclient.print(strData);
-				strData = "Host: " + (String)host + ":" + port + "\n";
+				strcpy(strData, "Host: ");
+				strcat(strData, host);
 				recvclient.print(strData);
-				recvclient.print("Content-Type: application/json\n");
-				recvclient.print("Accept: application/json\n");
-				strData="X-Ninja-Token: " + (String)token + "\n";
+				recvclient.print("Content-Type: application/json\r\n");
+				recvclient.print("Accept: application/json\r\n");
+				strcpy(strData,"X-Ninja-Token: ");
+				strcat(strData, token);
+				strcat(strData,"\r\n");
 				recvclient.print(strData);
 				recvclient.println();
 				isFirstConnected=true;
