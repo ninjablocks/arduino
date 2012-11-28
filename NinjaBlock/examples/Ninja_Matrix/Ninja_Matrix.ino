@@ -79,7 +79,7 @@ void ScanDMD()
 
 void setup(){
 
-  pinMode(led, OUTPUT);  
+  pinMode(statusled, OUTPUT);  
   
   Serial.begin(9600);
   Serial.println("Starting..");
@@ -129,7 +129,7 @@ void loop() {
     // NinjaBlock.intDATA - if data is integer
     // NinjaBlock.strDATA - if data is string
 
-      digitalWrite(led, HIGH);   // flash the status led on data received 
+      digitalWrite(statusled, HIGH);   // flash the status led on data received 
 
       Serial.print("DA:");
       if (NinjaBlock.IsDATAString) {
