@@ -1,12 +1,11 @@
 #include "NinjaBlock.h"
-#include <aJson.h>
+// #include <MemoryFree.h> 
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
 EthernetClient client;
 EthernetClient recvclient;
-boolean isFirstConnected=true;
-	
+
 int NinjaBlockClass::begin()
 {
 	
@@ -16,7 +15,7 @@ int NinjaBlockClass::begin()
 	if(Ethernet.begin(mac)==0)
 		return 1;		// Ethernet unable to obtain Dynamic IP address
 
-	Serial.print("Device IP address: ");
+	Serial.print("IP: ");
 	for (byte thisByte = 0; thisByte < 4; thisByte++) 
 	{
 		// print the value of each byte of the IP address:
@@ -24,70 +23,6 @@ int NinjaBlockClass::begin()
 		Serial.print(".");
 	}
 	Serial.println();
-}
-
-boolean NinjaBlockClass::decodeJSON()
-{
-	boolean IsJSONValid=false;
-	aJsonObject* rootObject = aJson.parse(data);
-	if (rootObject != NULL)
-	{
-		if(aJson.getArraySize(rootObject)>0)
-		{
-			aJsonObject* devices = aJson.getObjectItem(rootObject,"DEVICE");
-			if (devices != NULL)
-			{
-				aJsonObject* device = aJson.getArrayItem(devices,0);
-				if (device !=NULL)
-				{
-					aJsonObject* jguid = aJson.getObjectItem(device,"G");
-					aJsonObject* jvid = aJson.getObjectItem(device,"V");
-					aJsonObject* jdid = aJson.getObjectItem(device,"D");
-					aJsonObject* jdata = aJson.getObjectItem(device,"DA");
-				
-					if ((jguid != NULL) && (jguid->type == aJson_String)) 
-					{
-						strncpy(strGUID,jguid->valuestring,GUID_LEN);
-								
-						if ((jvid != NULL) && (jvid->type == aJson_Int))
-						{
-							intVID=jvid->valueint;
-									
-							if ((jdid != NULL) && (jdid->type == aJson_Int))
-							{
-								intDID=jdid->valueint;
-								
-								if (jdata != NULL)
-								{
-									if (jdata->type == aJson_String)
-									{
-										strncpy(strDATA, jdata->valuestring,DATA_LEN);
-										IsJSONValid=true;
-										IsDATAString=true;
-									}
-									else if (jdata->type == aJson_Int)
-									{
-										intDATA=jdata->valueint;
-										IsJSONValid=true;
-										IsDATAString=false;
-									}
-								}
-							}
-						}					
-					}
-				}
-			}
-		}
-
-		aJson.deleteItem(rootObject);
-	
-		if(IsJSONValid)
-			return true;
-		else
-			return false;  
-	}
-	else
-		return false;
 }
 
 void NinjaBlockClass::httppost(char *postData)
@@ -99,80 +34,71 @@ void NinjaBlockClass::httppost(char *postData)
 	{
 		if(client.connected())
 		{		
-			strcpy(strData,"POST /rest/v0/block/");
-			strcat(strData,nodeID);
-			strcat(strData, "/data HTTP/1.1\r\n");
-			client.print(strData);
-			strcpy(strData, "User-Agent: Ninja Block 1.1\r\n");
-			client.print(strData);
-			strcpy(strData,"Host: "); 
-			strcat(strData ,host);
-			strcat(strData, "\r\n");
-			client.print(strData);
-			client.print("Content-Type: application/json\r\n");
-			client.print("Accept: application/json\r\n");
-			//client.println("Connection: close\n");
-			strcpy(strData,"X-Ninja-Token: ");
-			strcat(strData,token);
-			strcat(strData,"\r\n");
-			client.print(strData);
+			sendHeaders(true,client);
 			client.print("Content-Length: ");
 			client.println(strlen(postData));
 			client.println();
 			client.println(postData);	
-			Serial.print("\nSent=");
+			Serial.print("Sent=");
 			Serial.println(postData);
 			
+			// client.flush();
 			while(client.available())
 			{
-				// httppost will return a HTTP response, if a device needs to process the return,
+				// httppost will return an HTTP response, if a device needs to process the return,
 				// this is the place code should be added to do the processing
 				// at the moment, we just clear all the buffer to prevent http read buffer being overflow
-				char c = client.read();
+				client.flush();
 			}
 			return;
 		}
 		else
 		{
-			Serial.print("NC to post server, try ");
-			Serial.println(i+1);
+			Serial.print("_");
 			client.stop();
 			client.connect(host,port);
 		}
 	}
 }
 
+void NinjaBlockClass::sendHeaders(boolean isPOST, EthernetClient hclient) {
+	char strData[DATA_LEN];
+	if (isPOST)  
+		strcpy(strData,"POST");
+	else 
+		strcpy(strData,"GET");
+	strcat(strData," /rest/v0/block/");
+	strcat(strData, nodeID);
+	if (isPOST)  
+		strcat(strData,"/data");
+	else 
+		strcat(strData, "/commands");
+	strcat(strData, " HTTP/1.1\r\n");
+	hclient.print(strData);
+	strcpy(strData,"Host: "); 
+	strcat(strData ,host);
+	strcat(strData, "\r\n");
+	hclient.print(strData);
+	hclient.print("User-Agent: Ninja Arduino 1.1\r\n");
+	hclient.print("Content-Type: application/json\r\n");
+	hclient.print("Accept: application/json\r\n");
+	strcpy(strData,"X-Ninja-Token: ");
+	strcat(strData, token);
+	strcat(strData,"\r\n");
+	hclient.print(strData);
+}
+
 void NinjaBlockClass::send(char *data)
 {
-	char strSend[DATA_SIZE];
-	char strNumber[6];
-	
-	strcpy(strSend,"{\"GUID\": \"");
-	strcat(strSend,nodeID);
-	strcat(strSend, "_" );
-	strcat(strSend,guid);
-	strcat(strSend, "_");
-	itoa(vendorID, strNumber, 10);
-	strcat(strSend, strNumber);
-	strcat(strSend, "_");
-	itoa(deviceID, strNumber, 10);
-	strcat(strSend, strNumber);
-	strcat(strSend, "\",\"G\": \"");
-	strcat(strSend, guid);
-	strcat(strSend, "\",\"V\": ");
-	itoa(vendorID, strNumber, 10);
-	strcat(strSend, strNumber);
-	strcat(strSend,",\"D\": ");
-	itoa(deviceID, strNumber, 10);
-	strcat(strSend, strNumber);
-	strcat(strSend, ",\"DA\": \"");
-	strcat(strSend, data);
-	strcat(strSend, "\"}");
-	httppost(strSend);
+	ninjaMessage(false, 0, data);
 }
 
 void NinjaBlockClass::send(int data)
 {
+	ninjaMessage(true, data, 0);
+}
+
+void NinjaBlockClass::ninjaMessage(boolean isInt, int intData, char *charData) {
 	char strSend[DATA_SIZE];
 	char strNumber[6];
 	
@@ -195,97 +121,153 @@ void NinjaBlockClass::send(int data)
 	itoa(deviceID, strNumber, 10);
 	strcat(strSend, strNumber);
 	strcat(strSend, ",\"DA\": ");
-	itoa(data, strNumber, 10);
-	strcat(strSend, strNumber);
+	if (isInt) {
+		itoa(intData, strNumber, 10);
+		strcat(strSend, strNumber);
+	} else {
+		strcat(strSend, "\"");
+		strcat(strSend, charData);
+		strcat(strSend, "\"");
+	}
 	strcat(strSend, "}");
 	httppost(strSend);
 }
 
 boolean NinjaBlockClass::receive(void)
 {
-	char strData[DATA_SIZE];
-
-	for (int i=0;i <3;i++)
+	for (int i=0;i <2;i++)
 	{
 		if(recvclient.connected())
-		{		
+		{	
 			boolean gotData=false;
 			int count=0;
-			if(isFirstConnected)
+			int d = 0;
+			int start;
+
+			while(recvclient.available())
 			{
-				// First time connected, so ignore HTTP header that is too long to be handled by Arduino
-				while(recvclient.available())
-				{
-					isFirstConnected=false;
-					char c = recvclient.read();
-				}
-			}
-			else
-			{
-				// Ok, this should be where the real JSON command comes in
-				while(recvclient.available())
-				{
-					char c= recvclient.read();
-					//Serial.print(c,HEX);
+				char c = recvclient.read();
+				// Uncomment the below to print the entire response to the console
+				// Serial.print(c);
+
+				if (d != 4) {
+
+					// This is a very coarse way to find the end of the headers
+					// We are looking for \r\n\r\n 
+					if (c == 0x0a || c == 0x0d) {
+						d++;
+					} else {
+						d = 0;
+					}
+
+				} else {
+
 					if (count<DATA_SIZE)
 					{
 						data[count]=c;
-						count++;
-						if (c==0x0a) 
-						{
-							if (data[count-2]==0x0d)
-							{
-								if (data[count-3]==0x0a)
-								{
-									// Found ending of packet
-									data[count-3]=0x0;
-									data[count-2]=0x0;
-									data[count-1]=0x0;
-									//Parse the JSON string
-									// if good gotData=true;
-									if(decodeJSON()) 
-									{
-										gotData=true;
+
+						// 0x22 " 
+						// 0x2c , 
+						// 0x3a : 
+						// 0x41 A
+						// 0x44 D
+						// 0x47 G
+						
+						// We aren't using aJSON to save a few hundred bytes.
+						// JSON separator if prev 2 chars ":
+						if (data[count-2]==0x22 && data[count-1]==0x3a) {
+							// If " we assume the value is a string
+							if (c == 0x22) {
+								c = recvclient.read();							
+								if (data[count-3]==0x47) {
+									start = count;
+									while (c != 0x22) {
+										data[count]=c;
+										c = recvclient.read();	
+										count++;
 									}
-									return gotData;
+									memcpy( strGUID, &data[start], count-start );
+									strGUID[count-start] = 0;
 								}
-								else
-								{
-									// Beginning of packet
-									count=0;
+								else if (data[count-4]==0x44 && data[count-3]==0x41) {
+									start = count;
+									while (c != 0x22) {
+										data[count]=c;
+										c = recvclient.read();	
+										count++;
+									}
+									memcpy( strDATA, &data[start], count-start );
+									strDATA[count-start] = 0;
+									IsDATAString=true;
+									gotData=true;
 								}
+							} else {
+								// Assume Int value 
+								if (data[count-3]==0x44) {
+									start = count;
+									while (c != 0x2c) {
+										data[count]=c;
+										c = recvclient.read();
+										count++;
+									}
+									// There must be a cleaner way to do this
+									char tmp[count-start];
+									memcpy( tmp, &data[start], count-start );
+									tmp[count-start] = 0;
+									intDID = atoi(tmp);
+								} 
+								else if (data[count-3]==0x56) {
+									start = count;
+									while (c != 0x2c) {
+										data[count]=c;
+										c = recvclient.read();
+										count++;
+									}
+									// There must be a cleaner way to do this
+									char tmp[count-start];
+									memcpy( tmp, &data[start], count-start );
+									tmp[count-start] = 0;
+									intVID = atoi(tmp);
+								}
+
 							}
 						}
+
+						count++;
+
+						// DEBUG
+						// Look for \n as the end of the message
+						// if (c==0x0a) 
+						// {
+						// 	Serial.print("strDATA=");
+						// 	Serial.print(strDATA);
+						// 	Serial.print(" strGUID=");
+						// 	Serial.print(strGUID);
+						// 	Serial.print(" intDID=");
+						// 	Serial.print(intDID);
+						// 	Serial.print(" intVID=");
+						// 	Serial.println(intVID);
+						// }
 					}
 				}
-
+			}
+			if (d == 4) {
+				recvclient.flush();
+				delay(100);
+				recvclient.stop();
+				delay(100);
 			}
 			return gotData;
 		}
 		else
 		{
-			Serial.print("NC to recv server, try ");
-			Serial.println(i+1);
+			Serial.print(".");
 			recvclient.stop();
+			// Create connection
 			if(recvclient.connect(host,port)==1)
 			{
-				strcpy(strData,"GET /rest/v0/block/");
-				strcat(strData, nodeID);
-				strcat(strData, "/commands HTTP/1.1\r\n");
-				recvclient.print(strData);
-				strcpy(strData, "Host: ");
-				strcat(strData, host);
-				recvclient.print(strData);
-				recvclient.print("Content-Type: application/json\r\n");
-				recvclient.print("Accept: application/json\r\n");
-				strcpy(strData,"X-Ninja-Token: ");
-				strcat(strData, token);
-				strcat(strData,"\r\n");
-				recvclient.print(strData);
+				sendHeaders(false, recvclient);
 				recvclient.println();
-				isFirstConnected=true;
-				Serial.print("Connected to ");
-				Serial.println(host);
 			}
 		}
 	}
