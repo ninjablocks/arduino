@@ -72,13 +72,6 @@ LED Panel Layout in RAM
 #define OE_DMD_ROWS_OFF()                 { digitalWrite( PIN_DMD_nOE, LOW  ); }
 #define OE_DMD_ROWS_ON()                  { digitalWrite( PIN_DMD_nOE, HIGH ); }
 
-//Pixel/graphics writing modes (bGraphicsMode)
-#define GRAPHICS_NORMAL    0
-#define GRAPHICS_INVERSE   1
-#define GRAPHICS_TOGGLE    2
-#define GRAPHICS_OR        3
-#define GRAPHICS_NOR       4
-
 //drawTestPattern Patterns
 #define PATTERN_ALT_0     0
 #define PATTERN_ALT_1     1
@@ -112,6 +105,16 @@ static byte bPixelLookupTable[8] =
 #define FONT_CHAR_COUNT         5
 #define FONT_WIDTH_TABLE        6
 
+// Transition Types
+#define TRANS_WIPE_DOWN         0
+#define TRANS_WIPE_UP           1
+#define TRANS_WIPE_LEFT         2
+#define TRANS_WIPE_RIGHT        3
+#define TRANS_BOX_OUT           4
+#define TRANS_BOX_IN            5
+#define TRANS_CROSS_OUT         6
+#define TRANS_CROSS_IN          7
+
 typedef uint8_t (*FontCallback)(const uint8_t*);
 
 
@@ -120,26 +123,37 @@ class DMD
 {
   public:
     //Instantiate the DMD
-    DMD(byte panelsWide, byte panelsHigh);
-	//virtual ~DMD();
+    DMD(byte panelsWide, byte panelsHigh, byte BPP);
+
+    //Setup double bufferring
+    void setupBuffer( byte buffers);
+
+    //Set Buffer to edit
+    void setBufferEdit (byte buffer);
+
+    //Set Buffer to display
+    void setBufferDisplay (byte buffer);
 
   //Set or clear a pixel at the x and y location (0,0 is the top left corner)
-  void writePixel( unsigned int bX, unsigned int bY, byte bGraphicsMode, byte bPixel );
+  void writePixel( unsigned int bX, unsigned int bY, byte colour);
+
+  //Get a pixel at the x and y location (0,0 is the top left corner)
+  byte getPixel( unsigned int bX, unsigned int bY);
 
   //Draw a string
-  void drawString( int bX, int bY, const char* bChars, byte length, byte bGraphicsMode);
+  void drawString( int bX, int bY, const char* bChars, byte length, byte fgcolour, byte bgcolour);
 
   //Select a text font
   void selectFont(const uint8_t* font);
 
   //Draw a single character
-  int drawChar(const int bX, const int bY, const char letter, byte bGraphicsMode);
+  byte drawChar(const int bX, const int bY, const char letter, byte fgcolour, byte bgcolour);
 
   //Find the width of a character
-  int charWidth(const char letter);
+  byte charWidth(const char letter);
 
   //Draw a scrolling string
-  void drawMarquee( const char* bChars, byte length, int left, int top);
+  void drawMarquee( const char* bChars, byte length, int left, int top, byte fgcolour, byte bgcolour);
 
   //Move the maquee accross by amount
   boolean stepMarquee( int amountX, int amountY);
@@ -148,31 +162,43 @@ class DMD
   void clearScreen( byte bNormal );
 
   //Draw or clear a line from x1,y1 to x2,y2
-  void drawLine( int x1, int y1, int x2, int y2, byte bGraphicsMode );
+  void drawLine( int x1, int y1, int x2, int y2, byte colour);
 
   //Draw or clear a circle of radius r at x,y centre
-  void drawCircle( int xCenter, int yCenter, int radius, byte bGraphicsMode );
+  void drawCircle( int xCenter, int yCenter, int radius, byte colour);
 
   //Draw or clear a box(rectangle) with a single pixel border
-  void drawBox( int x1, int y1, int x2, int y2, byte bGraphicsMode );
+  void drawBox( int x1, int y1, int x2, int y2, byte colour);
 
   //Draw or clear a filled box(rectangle) with a single pixel border
-  void drawFilledBox( int x1, int y1, int x2, int y2, byte bGraphicsMode );
+  void drawFilledBox( int x1, int y1, int x2, int y2, byte colour);
 
   //Draw the selected test pattern
   void drawTestPattern( byte bPattern );
+
+  //Scroll display
+  void scrollVert(int direction, boolean wrap);
+  void scrollHorz(int direction, boolean wrap);
 
   //Scan the dot matrix LED panel display, from the RAM mirror out to the display hardware.
   //Call 4 times to scan the whole display which is made up of 4 interleaved rows within the 16 total rows.
   //Insert the calls to this function into the main loop for the highest call rate, or from a timer interrupt
   void scanDisplayBySPI();
 
+  //Transition between two buffers with output to third
+  boolean transition(byte frombuffer1, byte frombuffer2, byte outbuffer, byte transType, int step);
+  /* Copy one buffer to another */
+  void copyBuffer(byte frombuffer, byte tobuffer);
+
+  //Debugging tool
+  void dumpPixels();
+
 
   private:
-    void drawCircleSub( int cx, int cy, int x, int y, byte bGraphicsMode );
+    void drawCircleSub( int cx, int cy, int x, int y, byte colour);
 
     //Mirror of DMD pixels in RAM, ready to be clocked out by the main loop or high speed timer calls
-    byte *bDMDScreenRAM;
+    byte **bDMDScreenRAM;
 
     //Marquee values
     char marqueeText[256];
@@ -181,17 +207,24 @@ class DMD
     int marqueeHeight;
     int marqueeOffsetX;
     int marqueeOffsetY;
+    int marqueeColour;
+    int marqueeBG;
 
     //Pointer to current font
     const uint8_t* Font;
 
     //Display information
+    byte DisplayBuf;
+    byte EditBuf;
     byte DisplaysWide;
     byte DisplaysHigh;
+    int DisplayMaxX;
+    int DisplayMaxY;
     byte DisplaysTotal;
+    byte DisplaysBPP;
     int row1, row2, row3;
 
-    //scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
+    //scanning pointer into bDMDScreenRAM, setup init @ 0 for the first valid scan
     volatile byte bDMDByte;
 
 };

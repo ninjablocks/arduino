@@ -48,7 +48,11 @@
 //Fire up the DMD library as dmd
 #define DISPLAYS_ACROSS 1
 #define DISPLAYS_DOWN 1
-DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN);
+#define DISPLAYS_BPP 1
+#define WHITE 0xFF
+#define BLACK 0
+
+DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN, DISPLAYS_BPP);
 
 /*--------------------------------------------------------------------------------------
   Interrupt handler for Timer1 (TimerOne) driven DMD refresh scanning, this gets
@@ -67,11 +71,11 @@ void setup(void)
 {
 
    //initialize TimerOne's interrupt/CPU usage used to scan and refresh the display
-   Timer1.initialize( 5000 );           //period in microseconds to call ScanDMD. Anything longer than 5000 (5ms) and you can see flicker.
+   Timer1.initialize( 5000/DISPLAYS_BPP );           //period in microseconds to call ScanDMD. Anything longer than 5000 (5ms) and you can see flicker.
    Timer1.attachInterrupt( ScanDMD );   //attach the Timer1 interrupt to ScanDMD which goes to dmd.scanDisplayBySPI()
 
    //clear/init the DMD pixels held in RAM
-   dmd.clearScreen( true );   //true is normal (all pixels off), false is negative (all pixels on)
+   dmd.clearScreen( BLACK );   //true is normal (all pixels off), false is negative (all pixels on)
 
 }
 
@@ -84,24 +88,24 @@ void loop(void)
    byte b;
    
    // 10 x 14 font clock, including demo of OR and NOR modes for pixels so that the flashing colon can be overlayed
-   dmd.clearScreen( true );
+   dmd.clearScreen( BLACK );
    dmd.selectFont(Arial_Black_16);
-   dmd.drawChar(  0,  3, '2', GRAPHICS_NORMAL );
-   dmd.drawChar(  7,  3, '3', GRAPHICS_NORMAL );
-   dmd.drawChar( 17,  3, '4', GRAPHICS_NORMAL );
-   dmd.drawChar( 25,  3, '5', GRAPHICS_NORMAL );
-   dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
+   dmd.drawChar(  0,  3, '2', WHITE,BLACK );
+   dmd.drawChar(  7,  3, '3', WHITE,BLACK );
+   dmd.drawChar( 17,  3, '4', WHITE,BLACK );
+   dmd.drawChar( 25,  3, '5', WHITE,BLACK );
+   dmd.drawChar( 15,  3, ':', WHITE,BLACK );   // clock colon overlay on
    delay( 1000 );
-   dmd.drawChar( 15,  3, ':', GRAPHICS_NOR    );   // clock colon overlay off
+   dmd.drawChar( 15,  3, ':', BLACK,BLACK );   // clock colon overlay off
    delay( 1000 );
-   dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
+   dmd.drawChar( 15,  3, ':', WHITE,BLACK );   // clock colon overlay on
    delay( 1000 );
-   dmd.drawChar( 15,  3, ':', GRAPHICS_NOR    );   // clock colon overlay off
+   dmd.drawChar( 15,  3, ':', BLACK,BLACK );   // clock colon overlay off
    delay( 1000 );
-   dmd.drawChar( 15,  3, ':', GRAPHICS_OR     );   // clock colon overlay on
+   dmd.drawChar( 15,  3, ':', WHITE,BLACK );   // clock colon overlay on
    delay( 1000 );
 
-   dmd.drawMarquee("Scrolling Text",14,(32*DISPLAYS_ACROSS)-1,0);
+   dmd.drawMarquee("Scrolling Text",14,(32*DISPLAYS_ACROSS)-1,0,WHITE,BLACK);
    long start=millis();
    long timer=start;
    boolean ret=false;
@@ -120,19 +124,19 @@ void loop(void)
    delay( 1000 );
    
    // display some text
-   dmd.clearScreen( true );
+   dmd.clearScreen( BLACK );
    dmd.selectFont(System5x7);
    for (byte x=0;x<DISPLAYS_ACROSS;x++) {
      for (byte y=0;y<DISPLAYS_DOWN;y++) {
-       dmd.drawString(  2+(32*x),  1+(16*y), "freet", 5, GRAPHICS_NORMAL );
-       dmd.drawString(  2+(32*x),  9+(16*y), "ronic", 5, GRAPHICS_NORMAL );
+       dmd.drawString(  2+(32*x),  1+(16*y), "freet", 5, WHITE,BLACK );
+       dmd.drawString(  2+(32*x),  9+(16*y), "ronic", 5, WHITE,BLACK );
      }
    }
    delay( 2000 );
    
    // draw a border rectangle around the outside of the display
-   dmd.clearScreen( true );
-   dmd.drawBox(  0,  0, (32*DISPLAYS_ACROSS)-1, (16*DISPLAYS_DOWN)-1, GRAPHICS_NORMAL );
+   dmd.clearScreen( BLACK );
+   dmd.drawBox(  0,  0, (32*DISPLAYS_ACROSS)-1, (16*DISPLAYS_DOWN)-1, WHITE );
    delay( 1000 );
    
    for (byte y=0;y<DISPLAYS_DOWN;y++) {
@@ -140,16 +144,16 @@ void loop(void)
        // draw an X
        int ix=32*x;
        int iy=16*y;
-       dmd.drawLine(  0+ix,  0+iy, 11+ix, 15+iy, GRAPHICS_NORMAL );
-       dmd.drawLine(  0+ix, 15+iy, 11+ix,  0+iy, GRAPHICS_NORMAL );
+       dmd.drawLine(  0+ix,  0+iy, 11+ix, 15+iy, WHITE );
+       dmd.drawLine(  0+ix, 15+iy, 11+ix,  0+iy, WHITE );
        delay( 1000 );
    
        // draw a circle
-       dmd.drawCircle( 16+ix,  8+iy,  5, GRAPHICS_NORMAL );
+       dmd.drawCircle( 16+ix,  8+iy,  5, WHITE );
        delay( 1000 );
    
        // draw a filled box
-       dmd.drawFilledBox( 24+ix, 3+iy, 29+ix, 13+iy, GRAPHICS_NORMAL );
+       dmd.drawFilledBox( 24+ix, 3+iy, 29+ix, 13+iy, WHITE );
        delay( 1000 );
      }
    }

@@ -13,6 +13,7 @@ DMD					KEYWORD1
 #######################################
 
 writePixel			KEYWORD2
+getPixel			KEYWORD2
 drawString			KEYWORD2
 drawChar			KEYWORD2
 selectFont			KEYWORD2
@@ -30,12 +31,6 @@ scanDisplayBySPI	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
-
-GRAPHICS_NORMAL		LITERAL1
-GRAPHICS_INVERSE	LITERAL1
-GRAPHICS_TOGGLE		LITERAL1
-GRAPHICS_OR			LITERAL1
-GRAPHICS_NOR		LITERAL1
 
 PATTERN_ALT_0		LITERAL1
 PATTERN_ALT_1		LITERAL1
