@@ -1,0 +1,21 @@
+Programming Instructions
+
+
+Compiling in Arduino for .hex file:
+
+OSX - /var/folders/xt/rdm...gn/T/build.....tmp/....hex
+(seen by turning on verbose output during compilation)
+Delete .o files from this directory of what you want re-compiled, or delete the whole build directory and re-open Arduino.
+
+
+Copy to Ninja Block:
+
+scp .hex file to ninjablock /opt/utilities/tmp/arduino.hex
+
+
+Perform the install:
+
+(Note: arduino.hex will be deleted when completed)
+sudo stop ninjablock
+update_arduino
+sudo start ninjablock
