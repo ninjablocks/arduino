@@ -1,6 +1,10 @@
 Ninja Blocks Arduino Source Code.
 Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
 
+Version 0.45: 21st December 2012 by JZ
+	- added DID defines
+	- added new DID 2007 for Version 1.2 board LED's
+
 Version 0.44: 8th October 2012 by JP Liew
 	- changed RCSwitch code to ignore any data with less than 24 bits to reduce noise
 	- removed RCSwitch::receiveProtocol2() to reduce code size
