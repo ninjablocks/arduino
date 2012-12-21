@@ -29,6 +29,8 @@
 #include "NinjaObjects.h"
 #include <RCSwitch.h>
 
+#include "NinjaDeviceIds.h"
+
 const char strWindDirection[16][4] = 
 {
 	"N", "NNE", "NE", "ENE",
@@ -320,7 +322,7 @@ void NinjaObjects::doReactors()
 			{
 				switch (intDID)
 				{
-					case 999:		// On Board status LED
+					case kNBDIDOnBoardStatusLED:
 					{
 						long colorVal = strtol(strDATA, NULL, 16);
 
@@ -345,7 +347,7 @@ void NinjaObjects::doReactors()
 						break;
 					}
 					
-					case 1000:		// On Board RGB Led
+					case kNBDIDOnBoardRGBLED:
 					{
 						long colorVal = strtol(strDATA, NULL, 16);
 
@@ -701,7 +703,7 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 }
 
 #ifdef V12
-void NinjaObjects::doOnBoardRGB()
+void NinjaObjects::doOnBoardRGB() //including status LED
 {
 	char tempSTR[7];
 	char tempColor[3];
@@ -717,7 +719,7 @@ void NinjaObjects::doOnBoardRGB()
 	sprintf(tempColor,"%02X", BLUE_LED_VALUE);
 	strcat(tempSTR,tempColor);
 
-	doJSONData("0", 0, 1000, tempSTR, 0, true,0);
+	doJSONData("0", 0, kNBDIDOnBoardRGBLED, tempSTR, 0, true,0);
 	
 	// Get RGB STATUS LED Value
 	int tempPORTB = PORTB & 0x11;		// Green & Red
@@ -738,7 +740,7 @@ void NinjaObjects::doOnBoardRGB()
 	else
 		strcat(tempSTR,"FF");
 
-	doJSONData("0", 0,999, tempSTR,0,true,0);
+	doJSONData("0", 0,kNBDIDOnBoardStatusLED, tempSTR,0,true,0);
 
 	if (Serial.available()>0) doReactors();
 
@@ -771,7 +773,7 @@ void NinjaObjects::doOnBoardRGB()
 	else
 		strcat(tempSTR,"FF");
 
-	doJSONData("0", 0,1000, tempSTR,0,true,0);
+	doJSONData("0", 0,kNBDIDOnBoardRGBLED, tempSTR,0,true,0);
 
 	if (Serial.available()>0) doReactors();
 }
