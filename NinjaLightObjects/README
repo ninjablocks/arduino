@@ -1,8 +1,0 @@
-NinjaLightObjects.cpp - Ninja Light Objects library
-A light weight Ninja Objects library suitable for 3rd party developer using own Arduino as a replacement for NinjaBlock
-  
-Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
-
-10th October 2012 by JP Liew
-	- initial release
-		
