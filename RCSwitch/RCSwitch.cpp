@@ -592,7 +592,7 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 {
 
 	unsigned long code = 0;
-	unsigned long delay = RCSwitch::timings[0] / 31;
+	unsigned long delay = RCSwitch::timings[0] / 27;
 	unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
 
 	for (unsigned int i = 1; i<changeCount ; i=i+2)
@@ -624,7 +624,7 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 			RCSwitch::nReceivedProtocol = 1;
 		}
 	}
-
+	
 	if (code == 0)
 		return false;
 	else
@@ -800,7 +800,7 @@ void RCSwitch::handleInterrupt()
 	long time = micros();
 	duration = time - lastTime;
 //  if (duration > 5000 && duration > RCSwitch::timings[0] - 200 && duration < RCSwitch::timings[0] + 200) {
-	if (duration > 5000 && RCSwitch::timings[0]>5000) 
+	if (duration > 4000 && RCSwitch::timings[0]>4000) 
 	{
 		repeatCount++;
 
@@ -837,7 +837,7 @@ void RCSwitch::handleInterrupt()
 		}
 		changeCount = 0;
 	} 
-	else if (duration > 5000) 
+	else if (duration > 4000) 
 	{
 		changeCount = 0;
 		repeatCount=0;
