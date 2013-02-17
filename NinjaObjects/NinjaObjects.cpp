@@ -934,6 +934,27 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 	}
 }
 
+char* NinjaObjects::createJSON(int protocol, char * strDATA)
+{
+	aJsonObject* root = aJson.createObject();
+	char* string = NULL;
+	if (root == NULL)
+	{
+		//Serial.println("error root"); 
+		return string;
+	}
+
+	aJson.addNumberToObject(root, "PTCL", protocol);
+	aJson.addStringToObject(root, "PL", strDATA);
+	
+
+	string = aJson.print(root);
+
+	aJson.deleteItem(root);
+	return string;
+}
+
+
 void NinjaObjects::do433(void)
 {
 	int tempID;
@@ -991,7 +1012,7 @@ void NinjaObjects::do433(void)
 #endif
 
 #ifdef V12
-					doJSONData("0", 0, tempID, strDATA, 0, true,0);
+					doJSONData("0", 0, tempID, createJSON(1,strDATA), 0, true,0);
 #endif
 				}
 			}

@@ -1,13 +1,10 @@
 #include <Arduino.h>
 #include <inttypes.h>
-
 #include <Ninja.h>
 #include <DHT22.h>
 //#include <I2C.h>
 #include <aJSON.h>
 #include <Sensors.h>
-//#include <Wire.h>
-//#include <MMA8453Q.h>
 #include <NinjaObjects.h>
 #include <RCSwitch.h>
 

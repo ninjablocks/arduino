@@ -54,6 +54,7 @@ class NinjaObjects {
 		void doLacrosseTX3(unsigned long long tx3value);
 		void doLacrosseWS2355(unsigned long long ws2344value);
 		void doWT450(unsigned long long value);
+		char* createJSON(int protocol, char * strDATA);
 };
 
 extern NinjaObjects nOBJECTS;
