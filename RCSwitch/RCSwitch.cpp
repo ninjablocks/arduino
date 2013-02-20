@@ -590,7 +590,9 @@ unsigned int* RCSwitch::getReceivedRawdata()
  */
 bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 {
-
+	//char pos = 4;
+	//Serial.print(timings[pos]); Serial.print(" "); Serial.print(timings[pos+1]); Serial.print(" "); Serial.print(timings[pos+2]); Serial.print(" "); Serial.print(timings[pos+3]); Serial.println(" ");
+	//Serial.print(timings[8]); Serial.print(" "); Serial.print(timings[9]); Serial.print(" "); Serial.print(timings[10]); Serial.print(" "); Serial.print(timings[11]); Serial.println(" ");
 	unsigned long code = 0;
 	unsigned long delay = RCSwitch::timings[0] / 27;
 	unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
@@ -614,7 +616,7 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 		}
 	}
 	code = code >> 1;
-	if (changeCount >47) 
+	if (changeCount >45) 
 	{
 		if(code>0)
 		{
@@ -631,15 +633,15 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 		return true;
 }
 
-/*
+
 bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 {
 
 	unsigned long code = 0;
-	unsigned long delay = RCSwitch::timings[0] / 10;
+	unsigned long delay = 300; //RCSwitch::timings[0] / 10;
 	unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
 
-	for (unsigned int i = 1; i<changeCount ; i=i+2)
+	for (unsigned int i = 4; i<changeCount ; i=i+2)
 	{
 		if (RCSwitch::timings[i] > delay-delayTolerance && RCSwitch::timings[i] < delay+delayTolerance && RCSwitch::timings[i+1] > delay*2-delayTolerance && RCSwitch::timings[i+1] < delay*2+delayTolerance)
 		{
@@ -657,8 +659,8 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 			code = 0;
 		}
 		}
-		code = code >> 1;
-		if (changeCount > 47) 
+		//code = code >> 1;
+		if (changeCount > 24) 
 		{
 			if(code>0)
 			{
@@ -668,13 +670,14 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 				RCSwitch::nReceivedProtocol = 2;
 			}
 		}
+		//Serial.println(code);
 
 	if (code == 0)
 		return false;
 	else
 		return true;
 }
-*/
+
 bool RCSwitch::receiveWT450(unsigned int changeCount)
 {
 	unsigned long long code = 0ull;
@@ -822,10 +825,17 @@ void RCSwitch::handleInterrupt()
 							// failed
 						}
 				}
+				else if (changeCount>26)
+				{
+						if (receiveProtocol1(changeCount) == false)
+						{
+							// failed
+						}
+				}
 				else 
 				{
 					changeCount--;
-					if (receiveProtocol1(changeCount) == false)
+					if (receiveProtocol2(changeCount) == false)
 					{
 						//if (receiveProtocol2(changeCount) == false)
 						//{

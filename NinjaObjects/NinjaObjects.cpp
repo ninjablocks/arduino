@@ -937,7 +937,7 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 char* NinjaObjects::createJSON(int protocol, char * strDATA)
 {
 	aJsonObject* root = aJson.createObject();
-	char* string = NULL;
+	char* string;
 	if (root == NULL)
 	{
 		//Serial.println("error root"); 
@@ -959,6 +959,7 @@ void NinjaObjects::do433(void)
 {
 	int tempID;
 	tempID=11;
+	char* data_str;
 
 	if (Serial.available()>0) doReactors();
 
@@ -1011,8 +1012,13 @@ void NinjaObjects::do433(void)
 					doJSONData("1", 0, tempID, strDATA, 0, true,0);
 #endif
 
-#ifdef V12
-					doJSONData("0", 0, tempID, createJSON(1,strDATA), 0, true,0);
+#ifdef V12			
+					data_str = createJSON(1,strDATA);
+					//Serial.println(data_str);
+					
+					doJSONData("0", 0, tempID, data_str, 0, true,0);
+					free(data_str);
+					//doJSONData("0", 0, tempID, strDATA, 0, true,0);
 #endif
 				}
 			}
