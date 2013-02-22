@@ -686,7 +686,7 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 	else
 	{
 		tempDATA = (int)numDATA;
-		if (numDATA>tempDATA)
+		if (numDATA!=tempDATA)
 			aJson.addNumberToObject(guid1, "DA", numDATA);
 		else
 			aJson.addNumberToObject(guid1, "DA", tempDATA);
@@ -818,7 +818,8 @@ void NinjaObjects::doWT450(unsigned long long value)
 	house=(data>>28) & (0x0f);
 	station=((data>>26) & (0x03))+1;
 	humidity=(data>>16)&(0xff);
-	temperature=((data>>8) & (0xff))-50;
+	temperature=((data>>8) & (0xff));
+	temperature = temperature - 50;
 	tempfraction=(data>>4) & (0x0f);
 
 	tempdecimal=((tempfraction>>3 & 1) * 0.5) + ((tempfraction>>2 & 1) * 0.25) + ((tempfraction>>1 & 1) * 0.125) + ((tempfraction & 1) * 0.0625);
