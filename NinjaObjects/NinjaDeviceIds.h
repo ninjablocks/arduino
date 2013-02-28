@@ -2,6 +2,7 @@
 #define NinjaDeviceIds_h
 
 #define kNBDIDOnBoardStatusLED      999
+#define V13
 
 #ifdef V11
 #define kNBDIDOnBoardRGBLED         1000

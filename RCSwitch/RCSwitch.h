@@ -63,6 +63,7 @@ class RCSwitch {
 		unsigned int getReceivedDelay();
 		unsigned int getReceivedProtocol();
 		unsigned int* getReceivedRawdata();
+		unsigned int getPulseLength();
 
 		void enableTransmit(int nTransmitterPin);
 		void disableTransmit();
@@ -71,6 +72,7 @@ class RCSwitch {
 		void setReceiveTolerance(int nPercent);
 		void setProtocol(int nProtocol);
 		void setProtocol(int nProtocol, int nPulseLength);
+		void doorChime(); 
 
 	private:
 		char* getCodeWordB(int nGroupNumber, int nSwitchNumber, boolean bStatus);
@@ -103,6 +105,8 @@ class RCSwitch {
 		static unsigned int nReceivedDelay;
 		static unsigned int nReceivedProtocol;
 		static unsigned int timings[RCSWITCH_MAX_CHANGES];
+		volatile static unsigned int valArray[RCSWITCH_MAX_CHANGES]; 
+		volatile static bool pinStatus;
 
 };
 

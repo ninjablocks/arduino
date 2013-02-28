@@ -26,10 +26,17 @@
 
 	Changes
 		- prevent multiple creation of ISR. 31st May 2012 JP Liew
+	
 
+	Protocols -
+		1 - Magnetic Proximity Door switch {uses simple encoding}
+		2 - ARlec Door chime				{Uses simple encoding}
+		5 - WT450 {Uses Unipolar RZ}
+		
 */
 
 #include "RCSwitch.h"
+#include "Ninja.h"
 
 unsigned long long RCSwitch::nReceivedValue = NULL;
 unsigned int RCSwitch::nReceivedBitlength = 0;
@@ -37,6 +44,9 @@ unsigned int RCSwitch::nReceivedDelay = 0;
 unsigned int RCSwitch::nReceivedProtocol = 0;
 unsigned int RCSwitch::timings[RCSWITCH_MAX_CHANGES];
 int RCSwitch::nReceiveTolerance = 60;
+volatile unsigned int RCSwitch::valArray[RCSWITCH_MAX_CHANGES]; 		//attempt to store the values in addition to timings
+volatile bool RCSwitch::pinStatus;
+
 
 RCSwitch::RCSwitch()
 {
@@ -206,7 +216,7 @@ void RCSwitch::switchOff(char* sGroup, int nChannel)
  * A Code Bit can have 4 different states: "F" (floating), "0" (low), "1" (high), "S" (synchronous bit)
  *
  * +-------------------------------+--------------------------------+-----------------------------------------+-----------------------------------------+----------------------+------------+
- * | 4 bits address (switch group) | 4 bits address (switch number) | 1 bit address (not used, so never mind) | 1 bit address (not used, so never mind) | 2 data bits (on|off) | 1 sync bit |
+ * | 4 bits address (switch group) | 4 bits address (switch number) | 1 bit address (not used, so never mind) | 1 bit data (not used, so never mind) | 2 data bits (on|off) | 1 sync bit |
  * | 1=0FFF 2=F0FF 3=FF0F 4=FFF0   | 1=0FFF 2=F0FF 3=FF0F 4=FFF0    | F                                       | F                                       | on=FF off=F0         | S          |
  * +-------------------------------+--------------------------------+-----------------------------------------+-----------------------------------------+----------------------+------------+
  *
@@ -536,6 +546,8 @@ void RCSwitch::enableReceive()
 	{
 		RCSwitch::nReceivedValue = NULL;
 		RCSwitch::nReceivedBitlength = NULL;
+		pinMode(RX433_INT, INPUT);
+		RCSwitch::pinStatus = digitalRead(RX433_INT);
 		attachInterrupt(this->nReceiverInterrupt, handleInterrupt, CHANGE);
 	}
 }
@@ -585,16 +597,23 @@ unsigned int* RCSwitch::getReceivedRawdata()
 	return RCSwitch::timings;
 }
 
+unsigned int RCSwitch::getPulseLength() 
+{
+	return RCSwitch::nPulseLength;
+}
+
 /**
  *
  */
 bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 {
-	//char pos = 4;
+	char pos = 0;
 	//Serial.print(timings[pos]); Serial.print(" "); Serial.print(timings[pos+1]); Serial.print(" "); Serial.print(timings[pos+2]); Serial.print(" "); Serial.print(timings[pos+3]); Serial.println(" ");
-	//Serial.print(timings[8]); Serial.print(" "); Serial.print(timings[9]); Serial.print(" "); Serial.print(timings[10]); Serial.print(" "); Serial.print(timings[11]); Serial.println(" ");
+	//Serial.print(valArray[pos]); Serial.print(" "); Serial.print(valArray[pos+1]); Serial.print(" "); Serial.print(valArray[pos+2]); Serial.print(" "); Serial.print(valArray[pos+3]); Serial.println(" ");
+	//Serial.print(1); Serial.print(" "); Serial.print(changeCount);
 	unsigned long code = 0;
-	unsigned long delay = RCSwitch::timings[0] / 27;
+	unsigned long delay = RCSwitch::timings[0] / 31;
+	//setPulseLength(delay);
 	unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
 
 	for (unsigned int i = 1; i<changeCount ; i=i+2)
@@ -624,7 +643,9 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 			RCSwitch::nReceivedBitlength = changeCount / 2;
 			RCSwitch::nReceivedDelay = delay;
 			RCSwitch::nReceivedProtocol = 1;
+			//RCSwitch::nPulseLength = delay;
 		}
+
 	}
 	
 	if (code == 0)
@@ -634,9 +655,33 @@ bool RCSwitch::receiveProtocol1(unsigned int changeCount)
 }
 
 
+void RCSwitch::doorChime() {   //need to change this to a propper transmission method
+	setProtocol(2, 380);
+	transmit(1,2);
+	transmit(1,1);
+	transmit(2,1);
+	transmit(2,1);
+	transmit(2,1);
+	transmit(2,2);
+	transmit(1,2);
+	transmit(1,1);
+	transmit(2,1);
+	transmit(2,2);
+	transmit(1,2);
+	transmit(1,1);
+	transmit(2,31);
+}
+
+
+
 bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 {
 
+	//000011001100
+	char pos = 0;
+	//Serial.print(timings[pos]); Serial.print(" "); Serial.print(timings[pos+1]); Serial.print(" "); Serial.print(timings[pos+2]); Serial.print(" "); Serial.print(timings[pos+3]); Serial.println(" ");
+	//Serial.print(valArray[pos]); Serial.print(" "); Serial.print(valArray[pos+1]); Serial.print(" "); Serial.print(valArray[pos+2]); Serial.print(" "); Serial.print(valArray[pos+3]); Serial.println(" ");
+	//Serial.print(2); Serial.print(" "); Serial.print(changeCount);
 	unsigned long code = 0;
 	unsigned long delay = 300; //RCSwitch::timings[0] / 10;
 	unsigned long delayTolerance = delay * RCSwitch::nReceiveTolerance * 0.01;    
@@ -644,11 +689,11 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 	for (unsigned int i = 4; i<changeCount ; i=i+2)
 	{
 		if (RCSwitch::timings[i] > delay-delayTolerance && RCSwitch::timings[i] < delay+delayTolerance && RCSwitch::timings[i+1] > delay*2-delayTolerance && RCSwitch::timings[i+1] < delay*2+delayTolerance)
-		{
+		{	//short pulse followed by a long pulse
 			code = code << 1;
 		} 
 		else if (RCSwitch::timings[i] > delay*2-delayTolerance && RCSwitch::timings[i] < delay*2+delayTolerance && RCSwitch::timings[i+1] > delay-delayTolerance && RCSwitch::timings[i+1] < delay+delayTolerance)
-		{
+		{	//long pulse followed by a short pulse
 			code+=1;
 			code = code << 1;
 		} 
@@ -658,7 +703,7 @@ bool RCSwitch::receiveProtocol2(unsigned int changeCount)
 			i = changeCount;
 			code = 0;
 		}
-		}
+	}
 		//code = code >> 1;
 		if (changeCount > 24) 
 		{
@@ -688,14 +733,14 @@ bool RCSwitch::receiveWT450(unsigned int changeCount)
 
 	for (int i = 1; i<changeCount ; i++) 
 	{
-		if (RCSwitch::timings[i] > HighWidth-delayTolerance && RCSwitch::timings[i] < HighWidth+delayTolerance) 
+		if (RCSwitch::timings[i] > HighWidth-delayTolerance && RCSwitch::timings[i] < HighWidth+delayTolerance)   //long pulse  
 		{
 			code = code << 1;
 			bitLength++;
 		}
-		else if ( RCSwitch::timings[i] > LowWidth-delayTolerance && RCSwitch::timings[i] < LowWidth+delayTolerance) 
+		else if ( RCSwitch::timings[i] > LowWidth-delayTolerance && RCSwitch::timings[i] < LowWidth+delayTolerance) 		//short pulse
 		{
-			if ( RCSwitch::timings[i+1] > LowWidth-delayTolerance && RCSwitch::timings[i+1] < LowWidth+delayTolerance) 
+			if ( RCSwitch::timings[i+1] > LowWidth-delayTolerance && RCSwitch::timings[i+1] < LowWidth+delayTolerance) 		//next short pulse
 			{
 				code+=1;
 				code = code << 1;
@@ -801,7 +846,10 @@ void RCSwitch::handleInterrupt()
 	static unsigned int repeatCount;
 
 	long time = micros();
-	duration = time - lastTime;
+	duration = time - lastTime;	
+	RCSwitch::valArray[changeCount] = RCSwitch::pinStatus;
+	pinStatus = !pinStatus;
+
 //  if (duration > 5000 && duration > RCSwitch::timings[0] - 200 && duration < RCSwitch::timings[0] + 200) {
 	if (duration > 4000 && RCSwitch::timings[0]>4000) 
 	{
@@ -825,8 +873,9 @@ void RCSwitch::handleInterrupt()
 							// failed
 						}
 				}
-				else if (changeCount>26)
+				else if (changeCount>30)
 				{
+						changeCount--;
 						if (receiveProtocol1(changeCount) == false)
 						{
 							// failed
@@ -835,12 +884,12 @@ void RCSwitch::handleInterrupt()
 				else 
 				{
 					changeCount--;
-					if (receiveProtocol2(changeCount) == false)
-					{
+					//if (receiveProtocol2(changeCount) == false)
+					//{
 						//if (receiveProtocol2(changeCount) == false)
 						//{
 					//	}
-					}		
+					//}		
 				}
 			}
 			repeatCount = 0;
@@ -858,7 +907,9 @@ void RCSwitch::handleInterrupt()
 		changeCount = 0;
 		repeatCount = 0;
 	}
+
 	RCSwitch::timings[changeCount++] = duration;
+
 	lastTime = time;  
 }
 

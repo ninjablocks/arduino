@@ -163,7 +163,23 @@ void dec2binWzerofill(char* bin, unsigned long long Dec, unsigned int bitLength)
 	return;
 }
 
-
+void printHex(char* hexString, unsigned long long num, int precision) {
+      //char tmp[16];
+      char format[16];
+		if(precision <=8) {
+			sprintf(format, "0x%%.%dlx", precision);
+			sprintf(hexString, format, num);
+			//Serial.print(tmp);
+		}
+		else {
+			char sec_len = precision - 8;
+			uint32_t xhi = num >> 32;
+			uint32_t xlo = num;
+			sprintf(format, "0x%%.%dlx%%08lx", sec_len);
+			sprintf(hexString, format, xhi, xlo);
+			//Serial.print(tmp);
+		}
+}
 /*
 // given a PROGMEM string, use Serial.print() to send it out
 // this is needed to save precious memory
@@ -651,6 +667,72 @@ void NinjaObjects::doJSONResponse()
 	free(string);
 }
 
+
+//begining of doJSONData for v 1.3 according to new protocol
+void NinjaObjects::doJSONData_v13(char * strGUID, int intVID, int intDID, int encoding, unsigned int pulseWidth, char * payLoad,  byte dataTYPE)
+{
+	int tempDATA=0;
+	
+	if((dataTYPE<-1) || (dataTYPE>2))
+		return;
+
+	aJsonObject* root = aJson.createObject();
+	if (root == NULL)
+	{
+		//Serial.println("error root"); 
+		return;
+	}
+
+	aJsonObject* device = aJson.createArray();
+	if (dataTYPE==0)
+		aJson.addItemToObject(root,"DEVICE", device);
+	
+	if (dataTYPE==1)
+		aJson.addItemToObject(root,"PLUGIN", device);
+	
+	if (dataTYPE==2)
+		aJson.addItemToObject(root,"UNPLUG", device);
+	
+	aJsonObject* guid1 = aJson.createObject();
+	aJson.addItemToArray(device, guid1);
+	aJson.addStringToObject(guid1, "G", strGUID);
+	aJson.addNumberToObject(guid1, "V", intVID);
+	aJson.addNumberToObject(guid1, "D", intDID);
+	
+	aJsonObject* dataObject = aJson.createObject();
+	aJson.addNumberToObject(dataObject, "E", encoding);
+	aJson.addNumberToObject(dataObject, "T", (int)pulseWidth);
+	aJson.addStringToObject(dataObject, "P", payLoad);	
+	
+	aJson.addItemToObject(guid1,"DA", dataObject);
+	
+	
+	/*
+	if(IsString)
+		aJson.addStringToObject(guid1, "DA", strDATA);
+	else
+	{
+		tempDATA = (int)numDATA;
+		if (numDATA!=tempDATA)
+			aJson.addNumberToObject(guid1, "DA", numDATA);
+		else
+			aJson.addNumberToObject(guid1, "DA", tempDATA);
+	}
+	*/
+	char* string = aJson.print(root);
+	if (string != NULL) 
+	{
+		Serial.println(string);
+	}
+
+	aJson.deleteItem(root);
+	free(string);
+}
+////////////////////////////////////
+//end of doJSONData for v 1.3
+//////////////////////////////////
+
+//begining of doJSONData for v 1.1 and v1.2
 void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString, byte dataTYPE)
 {
 	int tempDATA=0;
@@ -701,6 +783,8 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 	aJson.deleteItem(root);
 	free(string);
 }
+//end of doJSONData
+
 
 #ifdef V12
 void NinjaObjects::doOnBoardRGB() //including status LED
@@ -954,6 +1038,56 @@ char* NinjaObjects::createJSON(int protocol, char * strDATA)
 	return string;
 }
 
+#ifdef V13   //begin of version 1.3 do433() where all devices send hex raw data according to the new rotocol
+
+void NinjaObjects::do433(void)
+{
+	int dID433 = 11;
+	char* data_str;
+
+	if (Serial.available()>0) doReactors();
+
+	mySwitch.enableReceive(RX433_INT);
+
+	if (mySwitch.available() && (mySwitch.getReceivedProtocol()>0 && mySwitch.getReceivedProtocol()<6))
+	{
+		unsigned long long value = mySwitch.getReceivedValue();
+		if (value == 0) // unknown encoding
+		{
+			doJSONData("0", 0, dID433, "0", 0, true,0);
+			
+		} 
+		else 
+		{
+			// Blink Green LED to show data valid
+			blinkLED(GREEN_STAT_LED_PIN);
+			{		
+				if (mySwitch.getReceivedBitlength()> (128))
+				
+					doJSONData("0", 0, dID433, "0", 0, true,0);
+				else
+				{
+					printHex(strDATA, mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength()/4);
+					//data_str = createJSON(mySwitch.getReceivedProtocol(),strDATA);
+					//Serial.println(data_str);
+					
+					doJSONData_v13("0", 0, dID433, mySwitch.getReceivedProtocol(), mySwitch.getReceivedDelay(), strDATA,0);
+					//free(data_str);
+					//doJSONData("0", 0, tempID, strDATA, 0, true,0);
+				}
+			}
+		}
+		mySwitch.resetAvailable();
+	}
+	//else
+		//doJSONData("0", 0, tempID, "-1", 0, true,0);
+
+	if (Serial.available()>0) doReactors();
+}
+
+#else
+//////////////////////////////////////
+//begin of version 1.1 and 1.2 do433()
 
 void NinjaObjects::do433(void)
 {
@@ -1014,9 +1148,17 @@ void NinjaObjects::do433(void)
 
 #ifdef V12			
 					data_str = createJSON(1,strDATA);
-					//Serial.println(data_str);
 					
+					//unsigned long long i = mySwitch.getReceivedValue();
 					doJSONData("0", 0, tempID, data_str, 0, true,0);
+
+					//mySwitch.enableTransmit(TX433_PIN);
+						//for (int j=1; j<5; j++)
+					//	{
+						//	mySwitch.doorChime();
+						//}
+					//mySwitch.disableTransmit();
+
 					free(data_str);
 					//doJSONData("0", 0, tempID, strDATA, 0, true,0);
 #endif
@@ -1030,6 +1172,8 @@ void NinjaObjects::do433(void)
 
 	if (Serial.available()>0) doReactors();
 }
+
+#endif   // end of version 1.1 and 1.2 do433
 
 boolean NinjaObjects::doPort1(byte* DHT22_PORT)
 {
