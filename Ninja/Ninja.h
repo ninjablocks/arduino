@@ -4,8 +4,8 @@
 // This part defines which version to use when compile
 // Only one define is allowed.
 
-//#define V11					1
-#define V12				1
+#define V11					1
+//#define V12				1
 #define VERSION_NO 	"0.46"
 //#define TESTER	1
 
