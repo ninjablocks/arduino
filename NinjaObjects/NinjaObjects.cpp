@@ -31,13 +31,14 @@
 
 #include "NinjaDeviceIds.h"
 
-const char strWindDirection[16][4] = 
-{
-	"N", "NNE", "NE", "ENE",
-	"E", "ESE", "SE", "SSE",
-	"S", "SSW", "SW", "WSW",
-	"W", "WNW", "NW", "NNW"
-};
+//DEPRECATED
+// const char strWindDirection[16][4] = 
+// {
+// 	"N", "NNE", "NE", "ENE",
+// 	"E", "ESE", "SE", "SSE",
+// 	"S", "SSW", "SW", "WSW",
+// 	"W", "WNW", "NW", "NNW"
+//};
 
 /*
 struct __freelist
@@ -925,7 +926,8 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 				windspeed += nibble[6]<<4;
 				windspeed += nibble[7];
 				windspeed =(windspeed/10)*3.6;
-				doJSONData(strAddress, 0, 23, (char *)strWindDirection[windir], 0, true,0);
+				//DEPRECATED: doJSONData(strAddress, 0, 23, (char *)strWindDirection[windir], 0, true,0);
+				doJSONData(strAddress, 0, 23, NULL, windir, false, 0);
 				doJSONData(strAddress, 0, 24, NULL, windspeed, false,0);
 				break;
 
