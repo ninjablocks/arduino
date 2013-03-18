@@ -16,12 +16,12 @@
 class NinjaPacket
 {
 private:
-	int				m_nType;
-	int				m_nGuid;
-	int				m_nDevice;
-	unsigned long	m_nData;
+	int					m_nType;
+	int					m_nGuid;
+	int					m_nDevice;
+	unsigned long long	m_nData;
 
-	static char*	DELIMITERS;
+	static char*		DELIMITERS;
 
 private:
 	void			printData();
@@ -31,17 +31,17 @@ private:
 public:
 	NinjaPacket();
 
-	int				getType();
-	void			setType(int nType);
-	int				getGuid();
-	void			setGuid(int nGuid);
-	int				getDevice();
-	void			setDevice(int nDevice);
-	unsigned long	getData();
-	void			setData(unsigned long nData);
+	int					getType();
+	void				setType(int nType);
+	int					getGuid();
+	void				setGuid(int nGuid);
+	int					getDevice();
+	void				setDevice(int nDevice);
+	unsigned long long	getData();
+	void				setData(unsigned long long nData);
 
-	bool			fromJson(char* strJson);
-	void			printToSerial();
+	bool				fromJson(char* strJson);
+	void				printToSerial();
 };
 
 #endif

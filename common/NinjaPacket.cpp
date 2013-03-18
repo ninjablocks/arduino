@@ -43,12 +43,12 @@ void NinjaPacket::setDevice(int nDevice)
 	m_nDevice = nDevice;
 }
 
-unsigned long NinjaPacket::getData()
+unsigned long long NinjaPacket::getData()
 {
 	return m_nData;
 }
 
-void NinjaPacket::setData(unsigned long nData)
+void NinjaPacket::setData(unsigned long long nData)
 {
 	m_nData = nData;
 }
@@ -147,14 +147,12 @@ void NinjaPacket::printData()
 {
 	if(m_nType == TYPE_DEVICE || m_nType == TYPE_ACK)
 	{
-		if(m_nDevice == ID_ONBOARD_RF)
-			printDataBinary();
+		if(m_nDevice == ID_ONBOARD_RF || m_nDevice == ID_STATUS_LED || m_nDevice == ID_NINJA_EYES)
+			printDataHex();
 		else if(m_nDevice == ID_VERSION_NUMBER)
 			Serial.print(VERSION);
-		else if(m_nDevice == ID_STATUS_LED || m_nDevice == ID_NINJA_EYES)
-			printDataHex();
 		else
-			Serial.print(m_nData);
+			Serial.print((unsigned long)m_nData);
 	}
 	else
 		Serial.print(0);
@@ -180,17 +178,21 @@ void NinjaPacket::printDataBinary()
 
 void NinjaPacket::printDataHex()
 {
-	byte b1 = (m_nData >> 24);
-	byte b2 = ((m_nData >> 16) & 0xFF);
-	byte b3 = ((m_nData >> 8)& 0xFF);
-	byte b4 = (m_nData & 0xFF);
-
 	Serial.print("\"");
 
-	//printHex(b1);
-	jsonSerial.printHex(b2);
-	jsonSerial.printHex(b3);
-	jsonSerial.printHex(b4);
+	byte* 	p = ((byte*) &m_nData);
+	bool	bDataSent = false;
+
+	for(int i = 7; i >= 0; i--)
+	{
+		if(!bDataSent && p[i] == 0)
+			;
+		else
+		{
+			jsonSerial.printHex(p[i]);
+			bDataSent = true;
+		}
+	}
 
 	Serial.print("\"");
 }
