@@ -1,39 +1,42 @@
-#include "CommonProtocolDecoder.h"
+#include "arlecProtocolDecoder.h"
 
-CommonProtocolDecoder::CommonProtocolDecoder()
+arlecProtocolDecoder::arlecProtocolDecoder()
 {
 	m_nPulseLength = 0;
 }
 
-boolean CommonProtocolDecoder::decode(RFPacket* pPacket)
+boolean arlecProtocolDecoder::decode(RFPacket* pPacket)
 {
-	if(pPacket->getSize() != 50)
+	if(pPacket->getSize() != 26)
 		return false;
-
-	// Pulse length should be end-gap divided by 31
-	m_nPulseLength = pPacket->get(pPacket->getSize() - 1) / 31;
+	m_nPulseLength = 330;
 	m_nCode = 0;
 
 	// 50% tolerance, quite a lot, could/ be implemented more efficient
-	word nTolerance = m_nPulseLength * 0.5;
+	word nTolerance = m_nPulseLength * 0.35;
 	word nMin1 = m_nPulseLength - nTolerance;
 	word nMax1 = m_nPulseLength + nTolerance;
-	word nMin3 = 3*m_nPulseLength - nTolerance;
-	word nMax3 = 3*m_nPulseLength + nTolerance;
+	word nMin2 = 2*m_nPulseLength - nTolerance;
+	word nMax2 = 2*m_nPulseLength + nTolerance;
 	word nHighPulse = 0;
+	
+	//skip the three initial pulse changes because they don't seem to be valid data
+	pPacket->next();
+	pPacket->next();
+	pPacket->next();
 
-	// 24 bit => 48 pulses on/off
-	for(int i = 0; i < 24; i++)
+	  
+	// 11 bit => 22 pulses on/off
+	for(int i = 1; i < 12; i++)
 	{
 		nHighPulse = pPacket->next();
-
 		// Simply skip low pulse, for more accurate decoding this could be checked too
 		pPacket->next();
 
 		// Zero bit
 		if(nHighPulse >= nMin1 && nHighPulse <= nMax1)
 			;
-		else if(nHighPulse >= nMin3 && nHighPulse <= nMax3)
+		else if(nHighPulse >= nMin2 && nHighPulse <= nMax2)
 			m_nCode += 1;
 		else
 		{
@@ -49,9 +52,9 @@ boolean CommonProtocolDecoder::decode(RFPacket* pPacket)
 	return (m_nCode != 0);
 }
 
-void CommonProtocolDecoder::fillPacket(NinjaPacket* pPacket)
+void arlecProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 {
-	unsigned long long header = (unsigned long long) ENCODE_MAG_SW << 24;
+	unsigned long long header = (unsigned long long) ENCODE_ARLEC << 24;
 	header |= (int) m_nPulseLength;	
 	pPacket->setHeader(header);
 	pPacket->setType(TYPE_DEVICE);
