@@ -92,12 +92,16 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 		leds.setEyesColor(pPacket->getData());
 	else if(pPacket->getDevice() == ID_ONBOARD_RF)
 	{
+		m_Receiver.stop();
+	
 		CommonProtocolEncoder encoder(350);
 		
 		encoder.setCode(pPacket->getData());
 		encoder.encode(&m_PacketTransmit);
 		
 		m_Transmitter.send(&m_PacketTransmit, 5);
+
+		m_Receiver.start();
 	}
 
 	pPacket->setType(TYPE_ACK);
