@@ -8,6 +8,9 @@
 #endif
 
 #define MAX_BUFFER_SIZE	140
+#define ENCODE_MAG_SW 0x01
+#define ENCODE_WT450  0x02
+#define ENCODE_ARLEC  0x03
 
 class RFPacket
 {

@@ -1,9 +1,9 @@
-#ifndef COMMONPROTOCOLDECODER_H
-#define COMMONPROTOCOLDECODER_H
+#ifndef WT450PROTOCOLDECODER_H
+#define WT450PROTOCOLDECODER_H
 
 #include "Decoder.h"
 
-class CommonProtocolDecoder :
+class WT450ProtocolDecoder :
 	public Decoder
 {
 private:
@@ -11,7 +11,7 @@ private:
 	unsigned long long	m_nCode;
 
 public:
-	CommonProtocolDecoder();
+	WT450ProtocolDecoder();
 
 	boolean decode(RFPacket* pPacket);
 	void	fillPacket(NinjaPacket* pPacket);

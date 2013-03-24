@@ -55,7 +55,7 @@ void RFReceiver::onSignalChange()
 	nLastInterrupt = nCurrentTime;
 
 	// Sanity check
-	if(nDuration > 65000)
+	if(nDuration > 75000)
 		return;
 	
 	// End-gap?

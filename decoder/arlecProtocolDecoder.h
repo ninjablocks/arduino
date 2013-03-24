@@ -1,17 +1,17 @@
-#ifndef COMMONPROTOCOLDECODER_H
-#define COMMONPROTOCOLDECODER_H
+#ifndef ARLECPROTOCOLDECODER_H
+#define ARLECPROTOCOLDECODER_H
 
 #include "Decoder.h"
 
-class CommonProtocolDecoder :
+class arlecProtocolDecoder :
 	public Decoder
 {
 private:
 	int 			m_nPulseLength;
-	unsigned long long	m_nCode;
+	unsigned long 	m_nCode;
 
 public:
-	CommonProtocolDecoder();
+	arlecProtocolDecoder();
 
 	boolean decode(RFPacket* pPacket);
 	void	fillPacket(NinjaPacket* pPacket);

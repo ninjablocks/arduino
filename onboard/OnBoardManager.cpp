@@ -8,6 +8,8 @@
 #include "../decoder/CommonProtocolDecoder.h"
 #include "../encoder/CommonProtocolEncoder.h"
 
+#include "../decoder/WT450ProtocolDecoder.h"
+#include "../decoder/arlecProtocolDecoder.h"
 
 extern NinjaLED leds;
 
@@ -16,6 +18,8 @@ OnBoardManager::OnBoardManager()
 	m_nLastDecode = -1;
 
 	m_Decoders[0] = new CommonProtocolDecoder();
+	m_Decoders[1] = new WT450ProtocolDecoder();
+	m_Decoders[2] = new arlecProtocolDecoder();
 }
 
 void OnBoardManager::setup()
@@ -44,6 +48,7 @@ void OnBoardManager::check()
 
 				bDecodeSuccessful = true;
 			}
+			pReceivedPacket->rewind();
 		}
 
 		if(bDecodeSuccessful)
