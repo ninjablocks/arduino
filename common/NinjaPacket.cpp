@@ -53,6 +53,11 @@ void NinjaPacket::setData(unsigned long long nData)
 	m_nData = nData;
 }
 
+void NinjaPacket::setHeader(unsigned long long nHeader)
+{
+	m_nHeader = nHeader;
+}
+
 bool NinjaPacket::fromJson(char* strJson)
 {
 	// Very slim way to decode the JSON data
@@ -179,8 +184,17 @@ void NinjaPacket::printDataBinary()
 void NinjaPacket::printDataHex()
 {
 	Serial.print("\"");
+	if(m_nDevice == ID_ONBOARD_RF)
+		printHex(m_nHeader);
+	printHex(m_nData);
 
-	byte* 	p = ((byte*) &m_nData);
+	Serial.print("\"");
+}
+
+void NinjaPacket::printHex( unsigned long long dataToPrint)
+{
+
+	byte* 	p = ((byte*) &dataToPrint);
 	bool	bDataSent = false;
 
 	for(int i = 7; i >= 0; i--)
@@ -194,5 +208,4 @@ void NinjaPacket::printDataHex()
 		}
 	}
 
-	Serial.print("\"");
 }

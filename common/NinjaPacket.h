@@ -20,6 +20,7 @@ private:
 	int					m_nGuid;
 	int					m_nDevice;
 	unsigned long long	m_nData;
+	unsigned long long	m_nHeader;
 
 	static char*		DELIMITERS;
 
@@ -27,6 +28,7 @@ private:
 	void			printData();
 	void			printDataBinary();
 	void			printDataHex();
+	void 			printHex( unsigned long long dataToPrint);
 
 public:
 	NinjaPacket();
@@ -39,6 +41,7 @@ public:
 	void				setDevice(int nDevice);
 	unsigned long long	getData();
 	void				setData(unsigned long long nData);
+	void 				setHeader(unsigned long long nHeader);
 
 	bool				fromJson(char* strJson);
 	void				printToSerial();
