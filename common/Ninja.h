@@ -15,6 +15,6 @@
 #define ID_VERSION_NUMBER			1003
 #define ID_NINJA_EYES				1007
 
-#define VERSION	"\"V12_0.45\""
+#define VERSION	"\"V12_1.00\""
 
 #endif
