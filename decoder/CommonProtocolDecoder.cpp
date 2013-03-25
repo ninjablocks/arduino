@@ -1,5 +1,7 @@
 #include "CommonProtocolDecoder.h"
 
+#include "../common/Ninja.h"
+
 CommonProtocolDecoder::CommonProtocolDecoder()
 {
 	m_nPulseLength = 0;
@@ -51,9 +53,8 @@ boolean CommonProtocolDecoder::decode(RFPacket* pPacket)
 
 void CommonProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 {
-	unsigned long long header = (unsigned long long) ENCODE_MAG_SW << 24;
-	header |= (int) m_nPulseLength;	
-	pPacket->setHeader(header);
+	pPacket->setEncoding(ENCODING_COMMON);
+	pPacket->setTiming(m_nPulseLength);
 	pPacket->setType(TYPE_DEVICE);
 	pPacket->setGuid(0);
 	pPacket->setDevice(11);

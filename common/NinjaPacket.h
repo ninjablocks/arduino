@@ -19,16 +19,18 @@ private:
 	int					m_nType;
 	int					m_nGuid;
 	int					m_nDevice;
+	
+	byte				m_nEncoding;
+	word				m_nTiming;
 	unsigned long long	m_nData;
-	unsigned long long	m_nHeader;
+	
 
 	static char*		DELIMITERS;
 
 private:
-	void			printData();
-	void			printDataBinary();
-	void			printDataHex();
-	void 			printHex( unsigned long long dataToPrint);
+	void				printData();
+	void				printDataHex();
+	void 				printHex( unsigned long long nDataToPrint);
 
 public:
 	NinjaPacket();
@@ -41,7 +43,10 @@ public:
 	void				setDevice(int nDevice);
 	unsigned long long	getData();
 	void				setData(unsigned long long nData);
-	void 				setHeader(unsigned long long nHeader);
+	byte				getEncoding();
+	void				setEncoding(byte nEncoding);
+	word				getTiming();
+	void 				setTiming(word nTiming);
 
 	bool				fromJson(char* strJson);
 	void				printToSerial();

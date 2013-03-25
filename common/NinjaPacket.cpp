@@ -53,9 +53,24 @@ void NinjaPacket::setData(unsigned long long nData)
 	m_nData = nData;
 }
 
-void NinjaPacket::setHeader(unsigned long long nHeader)
+byte NinjaPacket::getEncoding()
 {
-	m_nHeader = nHeader;
+	return m_nEncoding;
+}
+
+void NinjaPacket::setEncoding(byte nEncoding)
+{
+	m_nEncoding = nEncoding;
+}
+
+word NinjaPacket::getTiming()
+{
+	return m_nTiming;
+}
+
+void NinjaPacket::setTiming(word nTiming)
+{
+	m_nTiming = nTiming;
 }
 
 bool NinjaPacket::fromJson(char* strJson)
@@ -73,13 +88,50 @@ bool NinjaPacket::fromJson(char* strJson)
 		{
 			if(ptr[1] == 'A')
 			{
-				char* cTmp = strtok(NULL, DELIMITERS);
-			
-				// Parse data
-				if(strlen(cTmp) < 12)
-					m_nData = strtoul(cTmp, NULL, 16); // Hex data
-				else
-					m_nData = strtoul(cTmp, NULL, 2); // Binary data
+				char*	cTmp = strtok(NULL, DELIMITERS);
+				char	nTmpVal;
+
+				if(m_nDevice == ID_ONBOARD_RF)
+				{
+					// Parse header data. First byte is encoding
+					cTmp[2] = 0x0;
+					m_nEncoding = strtoul(&cTmp[0], NULL, 16); 
+
+					// Byte 3 and 4 are timing. Backup value and zero-terminate string
+					nTmpVal = cTmp[8];
+					cTmp[8] = 0x0;
+					
+					// Now parse
+					m_nTiming = strtoul(&cTmp[4], NULL, 16);
+					
+					// And restore tmp value
+					cTmp[8] = nTmpVal;
+					
+					// Set pointer to data
+					cTmp = &cTmp[8];
+				}
+
+				// Now parse data. If data is more than 32 bits, parse 2 times 32 bits
+				// as there is no strtoull on Arduino
+				int nDataLength = strlen(cTmp);
+				int nPosLowerBytes = 0;
+				
+				if(nDataLength > 8)
+				{
+					nPosLowerBytes = (nDataLength - 8);
+
+					nTmpVal = cTmp[nPosLowerBytes];
+					cTmp[nPosLowerBytes] = 0x0;
+					
+					m_nData = strtoul(cTmp, NULL, 16);
+
+					cTmp[nPosLowerBytes] = nTmpVal;
+
+					m_nData <<= 32;
+				}
+				
+				// Finally parse last 32bits
+				m_nData += strtoul(&cTmp[nPosLowerBytes], NULL, 16);
 			}
 			else if(ptr[1] == 0x0)
 			{
@@ -163,38 +215,26 @@ void NinjaPacket::printData()
 		Serial.print(0);
 }
 
-void NinjaPacket::printDataBinary()
-{
-	Serial.print("\"");
-
-	// Print only 24bit
-	for(int i = 0; i < 24; i++)
-	{
-		if(m_nData & TOPBIT)
-			Serial.print(1);
-		else
-			Serial.print(0);
-
-		m_nData <<= 1;
-	}
-
-	Serial.print("\"");
-}
-
 void NinjaPacket::printDataHex()
 {
 	Serial.print("\"");
+
 	if(m_nDevice == ID_ONBOARD_RF)
-		printHex(m_nHeader);
+	{
+		jsonSerial.printHex(m_nEncoding);
+		jsonSerial.printHex(0x0); // Reserved
+		jsonSerial.printHex(m_nTiming >> 8);
+		jsonSerial.printHex(m_nTiming & 0xFF);
+	}
+
 	printHex(m_nData);
 
 	Serial.print("\"");
 }
 
-void NinjaPacket::printHex( unsigned long long dataToPrint)
+void NinjaPacket::printHex(unsigned long long nDataToPrint)
 {
-
-	byte* 	p = ((byte*) &dataToPrint);
+	byte* 	p = ((byte*) &nDataToPrint);
 	bool	bDataSent = false;
 
 	for(int i = 7; i >= 0; i--)
@@ -207,5 +247,4 @@ void NinjaPacket::printHex( unsigned long long dataToPrint)
 			bDataSent = true;
 		}
 	}
-
 }

@@ -1,5 +1,7 @@
 #include "WT450ProtocolDecoder.h"
 
+#include "../common/Ninja.h"
+
 WT450ProtocolDecoder::WT450ProtocolDecoder()
 {
 	m_nPulseLength = 0;
@@ -51,9 +53,8 @@ boolean WT450ProtocolDecoder::decode(RFPacket* pPacket)
 
 void WT450ProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 {
-	unsigned long long header = (unsigned long long) ENCODE_WT450 << 24;
-	header |= (int) m_nPulseLength;	
-	pPacket->setHeader(header);
+	pPacket->setEncoding(ENCODING_WT450);
+	pPacket->setTiming(m_nPulseLength);
 	pPacket->setType(TYPE_DEVICE);
 	pPacket->setGuid(0);
 	pPacket->setDevice(11);

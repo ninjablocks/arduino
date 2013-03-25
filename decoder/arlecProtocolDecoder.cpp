@@ -1,5 +1,7 @@
 #include "arlecProtocolDecoder.h"
 
+#include "../common/Ninja.h"
+
 arlecProtocolDecoder::arlecProtocolDecoder()
 {
 	m_nPulseLength = 0;
@@ -54,9 +56,8 @@ boolean arlecProtocolDecoder::decode(RFPacket* pPacket)
 
 void arlecProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 {
-	unsigned long long header = (unsigned long long) ENCODE_ARLEC << 24;
-	header |= (int) m_nPulseLength;	
-	pPacket->setHeader(header);
+	pPacket->setEncoding(ENCODING_ARLEC);
+	pPacket->setTiming(m_nPulseLength);
 	pPacket->setType(TYPE_DEVICE);
 	pPacket->setGuid(0);
 	pPacket->setDevice(11);

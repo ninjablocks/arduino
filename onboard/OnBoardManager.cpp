@@ -99,7 +99,7 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 	{
 		m_Receiver.stop();
 	
-		CommonProtocolEncoder encoder(350);
+		CommonProtocolEncoder encoder(pPacket->getTiming());
 		
 		encoder.setCode(pPacket->getData());
 		encoder.encode(&m_PacketTransmit);
