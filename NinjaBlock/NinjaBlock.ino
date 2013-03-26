@@ -26,7 +26,7 @@ void setup()
 {
   delay(2000);
   
-  jsonSerial.setup(9600);
+  jsonSerial.setup(57600);
   leds.setup();
   onBoardManager.setup();
 }
