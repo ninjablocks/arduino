@@ -30,7 +30,7 @@ private:
 private:
 	void				printData();
 	void				printDataHex();
-	void 				printHex( unsigned long long nDataToPrint);
+	void 				printHex( unsigned long long nDataToPrint, int nNumBytesRequired);
 
 public:
 	NinjaPacket();

@@ -227,19 +227,22 @@ void NinjaPacket::printDataHex()
 		jsonSerial.printHex(m_nTiming & 0xFF);
 	}
 
-	printHex(m_nData);
+	if(m_nDevice == ID_STATUS_LED || m_nDevice == ID_NINJA_EYES)
+		printHex(m_nData, 3); // For RGB colors print a minimum of 3 bytes, even if zero
+	else
+		printHex(m_nData, 1);
 
 	Serial.print("\"");
 }
 
-void NinjaPacket::printHex(unsigned long long nDataToPrint)
+void NinjaPacket::printHex(unsigned long long nDataToPrint, int nNumBytesRequired)
 {
 	byte* 	p = ((byte*) &nDataToPrint);
 	bool	bDataSent = false;
 
 	for(int i = 7; i >= 0; i--)
 	{
-		if(!bDataSent && p[i] == 0)
+		if(!bDataSent && p[i] == 0 && i >= nNumBytesRequired)
 			;
 		else
 		{
