@@ -57,6 +57,6 @@ void WT450ProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 	pPacket->setTiming(m_nPulseLength);
 	pPacket->setType(TYPE_DEVICE);
 	pPacket->setGuid(0);
-	pPacket->setDevice(11);
+	pPacket->setDevice(ID_ONBOARD_RF);
 	pPacket->setData(m_nCode);
 }
