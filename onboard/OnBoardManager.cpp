@@ -9,7 +9,9 @@
 #include "../encoder/CommonProtocolEncoder.h"
 
 #include "../decoder/WT450ProtocolDecoder.h"
+
 #include "../decoder/arlecProtocolDecoder.h"
+#include "../encoder/arlecProtocolEncoder.h"
 
 extern NinjaLED leds;
 
@@ -98,11 +100,21 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 	else if(pPacket->getDevice() == ID_ONBOARD_RF)
 	{
 		m_Receiver.stop();
-	
-		CommonProtocolEncoder encoder(pPacket->getTiming());
 		
-		encoder.setCode(pPacket->getData());
-		encoder.encode(&m_PacketTransmit);
+		char encoding = pPacket->getEncoding();
+		
+		switch (encoding)
+		{
+			case ENCODING_COMMON:
+				m_encoder = new CommonProtocolEncoder(pPacket->getTiming());
+				break;
+			case ENCODING_ARLEC:
+				m_encoder = new arlecProtocolEncoder(pPacket->getTiming());
+				break;
+		}
+		
+		m_encoder->setCode(pPacket->getData());
+		m_encoder->encode(&m_PacketTransmit);
 		
 		m_Transmitter.send(&m_PacketTransmit, 5);
 

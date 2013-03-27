@@ -8,6 +8,7 @@
 #endif
 
 #include "../decoder/Decoder.h"
+#include "../encoder/Encoder.h"
 #include "../rf/RFPacket.h"
 #include "../rf/RFReceiver.h"
 #include "../rf/RFTransmitter.h"
@@ -23,6 +24,7 @@ private:
 
 	Decoder*		m_Decoders[NUM_DECODERS];
 	int				m_nLastDecode;
+	Encoder*			m_encoder;
 
 public:
 	OnBoardManager();
