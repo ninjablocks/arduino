@@ -1,9 +1,9 @@
-#ifndef COMMONPROTOCOLENCODER_H
-#define COMMONPROTOCOLENCODER_H
+#ifndef ARLECPROTOCOLENCODER_H
+#define ARLECPROTOCOLENCODER_H
 
 #include "Encoder.h"
 
-class CommonProtocolEncoder :
+class arlecProtocolEncoder :
 	public Encoder
 {
 private:
@@ -12,7 +12,7 @@ private:
 	int				m_nTriplePulseLength;
 
 public:
-	CommonProtocolEncoder(int nPulseLength);
+	arlecProtocolEncoder(int nPulseLength);
 
 	void	setCode(unsigned long long nCode);
 	void	encode(RFPacket* pPacket);
