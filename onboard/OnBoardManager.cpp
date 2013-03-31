@@ -13,6 +13,9 @@
 #include "../decoder/arlecProtocolDecoder.h"
 #include "../encoder/arlecProtocolEncoder.h"
 
+#include "../decoder/HE330v2ProtocolDecoder.h"
+#include "../encoder/HE330v2ProtocolEncoder.h"
+
 extern NinjaLED leds;
 
 OnBoardManager::OnBoardManager()
@@ -22,6 +25,7 @@ OnBoardManager::OnBoardManager()
 	m_Decoders[0] = new CommonProtocolDecoder();
 	m_Decoders[1] = new WT450ProtocolDecoder();
 	m_Decoders[2] = new arlecProtocolDecoder();
+	m_Decoders[3] = new HE330v2ProtocolDecoder();
 }
 
 void OnBoardManager::setup()
@@ -111,6 +115,9 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 			case ENCODING_ARLEC:
 				m_encoder = new arlecProtocolEncoder(pPacket->getTiming());
 				break;
+			case ENCODING_HE330:
+				m_encoder = new HE330v2ProtocolEncoder(pPacket->getTiming());
+				break;	
 		}
 		
 		m_encoder->setCode(pPacket->getData());

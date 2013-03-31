@@ -18,6 +18,7 @@
 #define ENCODING_COMMON		0x01
 #define ENCODING_WT450		0x02
 #define ENCODING_ARLEC		0x03
+#define ENCODING_HE330		0x04
 
 #define VERSION	"\"V12_1.00\""
 

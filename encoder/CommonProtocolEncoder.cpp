@@ -11,14 +11,14 @@ CommonProtocolEncoder::CommonProtocolEncoder(int nPulseLength)
 
 void CommonProtocolEncoder::setCode(unsigned long long nCode)
 {
-	m_nCode = nCode;
+	m_nCode = (unsigned long)nCode;
 }
 
 void CommonProtocolEncoder::encode(RFPacket* pPacket)
 {
 	pPacket->reset();
 
-	m_nCode <<= 40;
+	m_nCode <<= 8;
 
 	// Add data
 	for (int i = 0; i < 24; i++)
