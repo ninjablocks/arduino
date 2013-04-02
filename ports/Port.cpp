@@ -6,7 +6,7 @@ Port::Port(int nId)
 {
 	m_nId = nId;
 	m_nType = 0;
-	m_nSensorValue = -1;
+	m_nValue = -1;
 
 	if(m_nId == PORT1)
 	{
@@ -40,6 +40,7 @@ void Port::checkType()
 	int val = analogRead(m_nPinId);
 
 	m_bIsSensor = false;
+	m_bIsButton = false;
 
 	if (val > 178 && val < 198) // Distance (ADC Value=188)
 	{
@@ -49,7 +50,7 @@ void Port::checkType()
 	else if (val > 250 && val < 270) // PIR (ADC Value=260 )
 	{
 		m_nType = ID_PIR_SENSOR;
-		m_bIsSensor = true;
+		m_bIsButton = true;
 	}
 	else if (val > 365 && val < 385) // Light (ADC Value=375)
 	{
@@ -69,7 +70,10 @@ void Port::checkType()
 	else if (val > 654 && val < 674) // Relay Breakoutboard (ADC Value=664)
 		m_nType = ID_RELAY_BOARD;
 	else if (val > 782 && val < 802) // Button (ADC value=792)
+	{
+		m_bIsButton = true;
 		m_nType = ID_BUTTON;
+	}
 	else
 		m_nType = -1;
 }
@@ -77,6 +81,11 @@ void Port::checkType()
 bool Port::isSensor()
 {
 	return m_bIsSensor;
+}
+
+bool Port::isButton()
+{
+	return m_bIsButton;
 }
 
 bool Port::handle(NinjaPacket* pPacket)
@@ -93,41 +102,41 @@ bool Port::handle(NinjaPacket* pPacket)
 	return true;
 }
 
-int Port::getSensorValue()
+int Port::getValue()
 {
-	return m_nSensorValue;
+	return m_nValue;
 }
 
-void Port::checkSensorValue()
+void Port::checkValue()
 {
 	switch(m_nType)
 	{
 		case ID_BUTTON:
 			pinMode(m_nPinAnalog, INPUT);
-			m_nSensorValue = digitalRead(m_nPinAnalog);
+			m_nValue = digitalRead(m_nPinAnalog);
 			break;
 		
 		case ID_LIGHT_SENSOR:
 			pinMode(m_nPinAnalog, INPUT);
-			m_nSensorValue = analogRead(m_nPinAnalog);
+			m_nValue = analogRead(m_nPinAnalog);
 			break;
 
 		case ID_PIR_SENSOR:
 			pinMode(m_nPinAnalog, INPUT);
-			m_nSensorValue = digitalRead(m_nPinAnalog);
+			m_nValue = digitalRead(m_nPinAnalog);
 			break;
 
 		case ID_DISTANCE_SENSOR:
 			pinMode(m_nPinAnalog, INPUT);
-			m_nSensorValue = analogRead(m_nPinAnalog);
+			m_nValue = analogRead(m_nPinAnalog);
 			break;
 		
 		case ID_SOUND_SENSOR:
 			pinMode(m_nPinAnalog, INPUT);
-			m_nSensorValue = analogRead(m_nPinAnalog);
+			m_nValue = analogRead(m_nPinAnalog);
 			break;
 
 		default: // Invalid sensor ID
-			m_nSensorValue = -1;
+			m_nValue = -1;
 	}
 }

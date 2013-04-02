@@ -1,6 +1,7 @@
 #include "JsonSerial.h"
 #include "NinjaPacket.h"
 #include "PortManager.h"
+#include "Port.h"
 #include "NinjaLED.h"
 #include "OnBoardManager.h"
 #include "Heartbeat.h"

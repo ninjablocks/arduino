@@ -18,9 +18,7 @@ void PortManager::check()
 	{
 		// 1. Check port type
 		nOldValue = m_Ports[i]->getType();
-
 		m_Ports[i]->checkType();
-		
 		nCurValue = m_Ports[i]->getType();
 	
 		if(nOldValue != nCurValue)
@@ -34,12 +32,6 @@ void PortManager::check()
 			{
 				packet.setType(TYPE_PLUGIN);
 				packet.setDevice(nCurValue);
-				
-				packet.printToSerial();
-				
-				packet.setType(TYPE_DEVICE);
-				
-				packet.printToSerial();
 			}
 			else
 			{
@@ -49,17 +41,36 @@ void PortManager::check()
 			
 			packet.printToSerial();
 		}
-
-		if(heartbeat.isExpired() && m_Ports[i]->isSensor())
+		
+		if(m_Ports[i]->isButton())
 		{
-			m_Ports[i]->checkSensorValue();
+			nOldValue = m_Ports[i]->getValue();
+			m_Ports[i]->checkValue();
+			nCurValue = m_Ports[i]->getValue();
+
+			// Send only ON events
+			if(nOldValue != nCurValue && nCurValue > 0)
+			{
+				NinjaPacket packet;
+				
+				packet.setType(TYPE_DEVICE);
+				packet.setGuid(i + 1);
+				packet.setDevice(m_Ports[i]->getType());
+				packet.setData(nCurValue);
+
+				packet.printToSerial();
+			}
+		}
+		else if(heartbeat.isExpired() && m_Ports[i]->isSensor())
+		{
+			m_Ports[i]->checkValue();
 		
 			NinjaPacket packet;
 
 			packet.setType(TYPE_DEVICE);
 			packet.setGuid(i + 1);
 			packet.setDevice(m_Ports[i]->getType());
-			packet.setData(m_Ports[i]->getSensorValue());
+			packet.setData(m_Ports[i]->getValue());
 
 			packet.printToSerial();
 		}

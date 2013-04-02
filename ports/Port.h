@@ -23,7 +23,8 @@ private:
 	
 	int		m_nType;
 	bool	m_bIsSensor;
-	int		m_nSensorValue;
+	bool	m_bIsButton;
+	int		m_nValue;
 	
 public:
 	Port(int nId);
@@ -31,9 +32,10 @@ public:
 	void	checkType();
 	int 	getType();
 
-	void	checkSensorValue();
-	int 	getSensorValue();
+	void	checkValue();
+	int 	getValue();
 	bool	isSensor();
+	bool	isButton();
 
 	bool	handle(NinjaPacket* pPacket);
 	
