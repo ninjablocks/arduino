@@ -27,7 +27,7 @@ void setup()
 {
   delay(2000);
   
-  jsonSerial.setup(57600);
+  jsonSerial.setup(9600); //TODO: 57600 baudrate once dynamic baud detection is implemented in the client
   leds.setup();
   onBoardManager.setup();
 }
