@@ -1,110 +1,3 @@
-Ninja Blocks Arduino Source Code.
-Developed by www.ninjablocks.com based on Arduino and other Open Source libraries.
-
-Version 0.45: 21st December 2012 by JZ
-	- added DID defines
-	- added new DID 2007 for Version 1.2 board LED's
-
-Version 0.44: 8th October 2012 by JP Liew
-	- changed RCSwitch code to ignore any data with less than 24 bits to reduce noise
-	- removed RCSwitch::receiveProtocol2() to reduce code size
-	- removed many functions from libraries to reduce code size
-	- added receiveWT450() to decode WT450 raw stream
-	- added doWT450()to decode house, station, humidity & temp from WT450 Sensor
-	- added WT450 Humidity Device ID=30, and Temperature Device ID=31
-	- changed Power on status LED to BLUE
-
-Version 0.43: 2nd October 2012 by JP Liew
-	- added TESTER code for Ninja Cape to test another fresh cape out from production
-	- added DID 8888,8889,8890 to support special command for TESTER to send/receive signal
-	- changed VNO to be "0.xx" for easy server parsing
-	- added "\n" when Arduino start for a clean new line output
-
-Version 0.42: 24th August 2012 by JP Liew
-	- added RGB Status light support
-	- added DID 999 for V12 status RGB
-	- added PLUGIN and UNPLUG events
-	- changed doJSONData() to support, DEVICE, PLUGIN and UNPLUG event in one function
-	- changed PIR and Push Button high from 1023 to 1
-	- changed sensor to only send on changed event, except Distance, Light and Sound
-	- changed Light sensor to report value from 0% to 100%, in a 10 average reading
-
-Version 0.41: 20th August 2012 by JP Liew
-	- cleaned commented codes
-	- enabled accelerometer for V11 after testing
-	- split do433() into GUID=0 and GUID=1 for V12 and V11 respectively
-
-Version 0.40: 20th August 2012 by JP Liew
-	- changed doOnBoardRGB(), doOnBoardTemperature(), doDHT22() to slow down to 30 seconds per update
-	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay
-	- tidied doPort1(), doPort2() and doPort3() when dealing with DHT22
-	- disabled DHT22 from sending -99 or 0
-	- disabled 433 functions from sending 0 data
-	- changed getBoardTemperature() resolution to 1 decimal point
-	
-Version 0.39: 17th August 2012 by JP Liew
-	- added receiveLaCrosse() in RCSwitch lib to decode LaCrosse 433 Transmitter
-	- changed RCSwitch ISR routine to be able to accept LaCrosse protocol
-	- changed decoding to use unsigned long long for protocol longer than 32bits
-	- added support for LaCrosse WS2355 protocol for temp, humidity, rain, wind, win direction
-	- added support for LaCrosse TX3 protocol for temp
-	- changed do433() in ordered to use the same routine for V11 and V12
-	- disabled do433() from sending -1 result
-
-Version 0.38: MAJOR code changes to accomodate V11 and V12 board, 14th August 2012 by JP Liew
-	- added doJSONData(...) to allow easier calling of the library
-	- clean up many precompile warnings
-	- added V11 V12 preprocessor directives for version selection
-	- disabled getBoardTemperature() for V12 board
-	- disabled doOnBoardAccelerometer() for V12 board
-	- changed doOnBoardRGB() to cater PWM for V12 board
-	- added doOnBoard433() for V12 board
-
-Version 0.37: 30th July 2012 by JP Liew
-	- fixed RCSwitch to add leading zeros when sending JSON data in binary
-	- fixed GREEN LED blink on GREEN when receiving 433 data
-	
-Version 0.36: 5th July 2012 by JP Liew
-	- fixed Relay digitalWrite() not in OUTPUT mode
-	- added Device ID 1003, DATA="VNO" for cape to report software version
-	- disabled responding to DID 1001 with the new all in one TX & RX board
-	- changed 433 transmit from 5 times to 8 times	
-
-Version 0.35: 2nd July 2012 by JP Liew
-	- added handling for Relay Breakout board. 2nd July 2012
-	- added reading ID for Relay Breakout board. 2nd July 2012
-
-Version 0.34.1: 22th June 2012 by JP Liew
-	- added blinkLED() for push button triggered.  22nd June 2012
-	
-Version 0.34: 15th June 2012 by JP Liew
-	- added doOnBoardRGB() to report status of RGB Led.  15th June 2012
-	- added doJSONResponse() to ack server messages. 15th June 2012
-	- added doJSONError(int) to report error. 15th June 2012
-
-Version 0.33: 
-	- added sound sensor support and blink RED LED if sound level exceeds 0. 1st June 2012
-	- fixed 433Mhz Tx & Rx interfering. 1st June 2012
-	- fixed readSerialString() stucked in while loop. 1st June 2012
-	- changed blinkGreenLED() to blinkLED() so that any LED could be blinked. 1st June 2012
-
-Version 0.32: 31st May 2012 by JP Liew
-	- changed TMP102 to read in 30 sec interval, reading too quickly will cause chip to heat up, thus giving slightly higher temperature reading. 30th May 2012
-	- added code to prevent multiple creation of ISR in enableReceive() for RCSwitch library. 31st May 2012
-	- added 433Mhz Rx module code. 31st May 2012
-	- added blinkGreenLED() when valid 433Mhz code received. 31st May 2012
-
-Version 0.31: 29th May 2012 by JP Liew
-	- changed JSON protocol, shorten to G,V,D,DA
-	- fixed RGB ID bug, should be 1000
-	- added UNKNOWN sensor to return ADC value
-	- added 433Mhz Tx module code
-	- changed DHT22 humidity & temp to return float value
-	
-Version 0.2: 25th May 2012 by JP Liew
-	- restructured JSON protocol to encapsulate devices with GUID, VID, DID and DATA
-	
-Version 0.1: by Marcus Schappi www.ninjablocks.com
 
 Libraries Required
 ==================
@@ -132,3 +25,25 @@ Installation instructions
 				--->Ninja
 						--->NinjaArduino
 
+DA value for RF
+===============
+DA value
+The DA value is a string representing hexadecimal nibbles as follows:
+  Bytes		Name
+  1		Encoding of the RF packet
+  1		[Reserved]
+  2		Micro seconds, unless encoding implies otherwise (Maximum “FFFF” = 65535us)
+  n		Payload (probably 4+ bytes)
+
+Eg. {... “DA”:“0200249F95A7C”}
+Encoding (02) = 2
+Ignored (00)
+Timing (249F) = 9375 us
+Payload (95A7C) = 1001 0101 1010 0111 1100
+
+Encoding Reference:
+Magnetic Proximity switch - Encoding 0x01
+Home Easy 2ch wall socket - Encoding 0x01
+WT450     - Encoding 0x02
+ARLEC door chime - Encoding 0x03
+Home Easy Power sockets - Encoding 0x04
