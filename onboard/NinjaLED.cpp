@@ -70,12 +70,8 @@ void NinjaLED::setStatColor(unsigned long long nColor)
 	analogWrite(GREEN_STAT_LED_PIN, 255 - (int((nColor & 0x00ff00) >> 8)));
 	analogWrite(BLUE_STAT_LED_PIN,  255 - (int((nColor & 0x0000ff) >> 0)));
 	
-	//int tempColor = (unsigned int)((nColor<<40)>>40);
-	//m_nStatColor = (long)tempColor + (nColor & 0xff0000);
 	m_nStatColor = (unsigned long)((nColor<<40)>>40);
-
 	unsigned int tempPeriod = (unsigned int)((nColor<<24)>>48);
-
 	byte tempDutyCycle = (byte)((nColor<<16)>>56);
 	
 	if(tempPeriod != 0)
@@ -86,7 +82,8 @@ void NinjaLED::setStatColor(unsigned long long nColor)
 		{
 			if (!blinkyEnabled) enableBlinky();
 			m_nPeriod = tempPeriod;
-			m_nDutyCycle = tempDutyCycle;
+			double result = (tempDutyCycle*(double)tempPeriod)/256;
+			m_nDutyCycle = (unsigned int)result;
 		}
 	
 	}
@@ -94,7 +91,11 @@ void NinjaLED::setStatColor(unsigned long long nColor)
 
 long NinjaLED::getStatColor()
 {
-	return m_nStatColor;
+	unsigned long long tempColor;
+	if(blinkyEnabled && m_nStatColor == 0) tempColor = m_nTempStatColor;
+	else tempColor = m_nStatColor;
+	
+	return tempColor;
 }
 
 void NinjaLED::blinkEyes()

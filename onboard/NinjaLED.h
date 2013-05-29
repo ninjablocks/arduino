@@ -12,7 +12,7 @@ class NinjaLED
 private:
 	long	m_nEyesColor;
 	long long	m_nStatColor;
-	long	m_nTempStatColor;
+	long long 	m_nTempStatColor;
 	bool 	blinkyEnabled;
 
 
@@ -37,7 +37,7 @@ public:
 	void 	statOff();
 
 	unsigned int 	m_nPeriod;
-	byte	m_nDutyCycle;
+	unsigned int	m_nDutyCycle;
 };
 
 #endif
