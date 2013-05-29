@@ -34,6 +34,21 @@ void NinjaLED::setup()
 	m_nStatColor = 0x0000FF;
 }
 
+void NinjaLED::timerSetup()
+{
+  noInterrupts();           // disable all interrupts
+  TCCR1A = 0;
+  TCCR1B = 0;
+
+  int timer1_counter = 63536;   // preload timer 65536-16MHz/8/1kHz
+  
+  TCNT1 = timer1_counter;   // preload timer
+  //TCCR1B |= (1 << CS11);    // 8 prescaler 
+  TIMSK1 |= (1 << TOIE1);   // enable timer overflow interrupt
+  interrupts();             // enable all interrupts
+  blinkyEnabled = 0;			//initially no blinking
+}
+
 void NinjaLED::setEyesColor(long nColor)
 {
 	m_nEyesColor = nColor;
@@ -48,13 +63,33 @@ long NinjaLED::getEyesColor()
 	return m_nEyesColor;
 }
 
-void NinjaLED::setStatColor(long nColor)
+void NinjaLED::setStatColor(unsigned long long nColor)
 {
-	m_nStatColor = nColor;
 
 	analogWrite(RED_STAT_LED_PIN,   255 - (int((nColor & 0xff0000) >> 16)));
 	analogWrite(GREEN_STAT_LED_PIN, 255 - (int((nColor & 0x00ff00) >> 8)));
 	analogWrite(BLUE_STAT_LED_PIN,  255 - (int((nColor & 0x0000ff) >> 0)));
+	
+	//int tempColor = (unsigned int)((nColor<<40)>>40);
+	//m_nStatColor = (long)tempColor + (nColor & 0xff0000);
+	m_nStatColor = (unsigned long)((nColor<<40)>>40);
+
+	unsigned int tempPeriod = (unsigned int)((nColor<<24)>>48);
+
+	byte tempDutyCycle = (byte)((nColor<<16)>>56);
+	
+	if(tempPeriod != 0)
+	{
+		if(tempDutyCycle == 0)
+			disableBlinky();
+		else
+		{
+			if (!blinkyEnabled) enableBlinky();
+			m_nPeriod = tempPeriod;
+			m_nDutyCycle = tempDutyCycle;
+		}
+	
+	}
 }
 
 long NinjaLED::getStatColor()
@@ -79,6 +114,7 @@ void NinjaLED::blinkEyes()
 
 void NinjaLED::blinkStat()
 {
+	disableBlinky();
 	int tempPORTB = PORTB;
 	int tempPORTD = PORTD;
 
@@ -90,4 +126,54 @@ void NinjaLED::blinkStat()
 
 	PORTB = tempPORTB;
 	PORTD = tempPORTD;
+	enableBlinky();
 }
+
+void NinjaLED::statToggle()
+{
+	if (m_nStatColor > 0) 	//LED On
+	{
+		m_nTempStatColor = m_nStatColor;
+		setStatColor(0x000000);
+	}
+	else
+		setStatColor(m_nTempStatColor);
+}
+
+void NinjaLED::statOn()
+{
+	if (m_nStatColor > 0) 	//LED On
+	{
+		m_nTempStatColor = m_nStatColor;
+	}
+	else
+		setStatColor(m_nTempStatColor);
+}
+
+void NinjaLED::statOff()
+{
+		m_nTempStatColor = m_nStatColor;
+		setStatColor(0x000000);
+}
+
+
+void NinjaLED::enableBlinky()
+{
+	  blinkyEnabled = 1;
+	  TCCR1B |= (1 << CS11);    // 8 prescaler
+	  
+}
+
+void NinjaLED::disableBlinky()
+{
+	  blinkyEnabled = 0;
+	  TCCR1B &= ~(1 << CS11);    // 0 prescaler - Disables timer
+	  
+}
+
+/*void NinjaLED::enableBlinky(int period, int dutyCycle)
+{
+	m_nPeriod = period;
+	m_nDutyCycle = dutyCycle;
+	TCCR1B |= (1 << CS11);    // 8 prescaler this starts the timer
+}*/

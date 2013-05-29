@@ -11,12 +11,16 @@ class NinjaLED
 {
 private:
 	long	m_nEyesColor;
-	long	m_nStatColor;
+	long long	m_nStatColor;
+	long	m_nTempStatColor;
+	bool 	blinkyEnabled;
+
 
 public:
 	NinjaLED();
 
 	void	setup();
+	void 	timerSetup();
 	
 	void	blinkEyes();
 	void	blinkStat();
@@ -24,7 +28,16 @@ public:
 	long	getEyesColor();
 	void	setEyesColor(long nColor);
 	long	getStatColor();
-	void	setStatColor(long nColor);
+	void	setStatColor(unsigned long long nColor);
+	void 	statToggle();
+	void	enableBlinky();
+	void	disableBlinky();
+	void 	enableBlinky(int period, int dutyCycle);
+	void 	statOn();
+	void 	statOff();
+
+	unsigned int 	m_nPeriod;
+	byte	m_nDutyCycle;
 };
 
 #endif

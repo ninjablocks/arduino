@@ -14,6 +14,7 @@ OnBoardManager  onBoardManager;
 PortManager     portManager;
 NinjaLED        leds;
 NinjaPacket     ninjaPacket;
+volatile unsigned int	cycleCount;
 
 int freeRam ()
 {
@@ -29,6 +30,7 @@ void setup()
   
   jsonSerial.setup(9600); //TODO: 57600 baudrate once dynamic baud detection is implemented in the client
   leds.setup();
+  leds.timerSetup();
   onBoardManager.setup();
 }
 
@@ -63,3 +65,16 @@ void loop()
   heartbeat.resume();
 }
 
+ISR(TIMER1_OVF_vect)        // interrupt service routine 
+{ 
+  TCNT1 = 63536;   // preload timer
+  cycleCount = cycleCount+1;
+  if (cycleCount == leds.m_nDutyCycle)
+		leds.statOff();
+  
+  if (cycleCount == leds.m_nPeriod)
+  {
+		leds.statOn();
+		cycleCount = 0;
+  }
+}
