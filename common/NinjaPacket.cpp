@@ -11,6 +11,7 @@ extern void printHex(byte b);
 
 NinjaPacket::NinjaPacket()
 {
+	dataInArray = false;		//by default data is assumed to be in a long long variable m_nData
 }
 
 int NinjaPacket::getType()
@@ -48,9 +49,21 @@ unsigned long long NinjaPacket::getData()
 	return m_nData;
 }
 
+byte* NinjaPacket::getDataArray()
+{
+	return dataArray;
+}
+
 void NinjaPacket::setData(unsigned long long nData)
 {
 	m_nData = nData;
+}
+
+void NinjaPacket::setData(byte* dataPointer, byte pos)
+{
+	dataArray = dataPointer;
+	arraySize = pos;
+	dataInArray = true;
 }
 
 byte NinjaPacket::getEncoding()
@@ -229,8 +242,10 @@ void NinjaPacket::printDataHex()
 
 	if(m_nDevice == ID_STATUS_LED || m_nDevice == ID_NINJA_EYES)
 		printHex(m_nData, 3); // For RGB colors print a minimum of 3 bytes, even if zero
-	else
+	else if(!dataInArray)	
 		printHex(m_nData, 1);
+	else 
+		printHex(dataArray, arraySize);
 
 	Serial.print("\"");
 }
@@ -249,5 +264,13 @@ void NinjaPacket::printHex(unsigned long long nDataToPrint, int nNumBytesRequire
 			jsonSerial.printHex(p[i]);
 			bDataSent = true;
 		}
+	}
+}
+
+void NinjaPacket::printHex(byte* p, byte arraySize)
+{
+	for(int i = 0; i < arraySize ; i++)
+	{
+		jsonSerial.printHex(p[i]);
 	}
 }

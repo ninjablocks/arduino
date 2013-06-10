@@ -7,7 +7,7 @@
 #include <WProgram.h>
 #endif
 
-#define MAX_BUFFER_SIZE	140
+#define MAX_BUFFER_SIZE	256
 
 class RFPacket
 {

@@ -16,6 +16,8 @@
 #include "../decoder/HE330v2ProtocolDecoder.h"
 #include "../encoder/HE330v2ProtocolEncoder.h"
 
+#include "../decoder/OSv2ProtocolDecoder.h"
+
 extern NinjaLED leds;
 
 OnBoardManager::OnBoardManager()
@@ -26,6 +28,8 @@ OnBoardManager::OnBoardManager()
 	m_Decoders[1] = new WT450ProtocolDecoder();
 	m_Decoders[2] = new arlecProtocolDecoder();
 	m_Decoders[3] = new HE330v2ProtocolDecoder();
+	m_Decoders[4] = new OSv2ProtocolDecoder();
+	
 }
 
 void OnBoardManager::setup()
@@ -43,7 +47,6 @@ void OnBoardManager::check()
 	if(pReceivedPacket != NULL)
 	{
 		bool bDecodeSuccessful = false;
-
 		m_nLastDecode = -1;
 
 		for(int i = 0; i < NUM_DECODERS; i++)
@@ -120,6 +123,11 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 				break;	
 		}
 		
+		if(pPacket->dataInArray))
+			m_encoder->setCode(pPacket->getDataArray());
+		else 
+			m_encoder->setCode(pPacket->getData());
+			
 		m_encoder->setCode(pPacket->getData());
 		m_encoder->encode(&m_PacketTransmit);
 		

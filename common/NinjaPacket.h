@@ -23,6 +23,9 @@ private:
 	byte				m_nEncoding;
 	word				m_nTiming;
 	unsigned long long	m_nData;
+	bool				dataInArray;
+	byte*				dataArray;
+	byte				arraySize;
 	
 
 	static char*		DELIMITERS;
@@ -31,6 +34,7 @@ private:
 	void				printData();
 	void				printDataHex();
 	void 				printHex( unsigned long long nDataToPrint, int nNumBytesRequired);
+	void 				printHex(byte* p, byte arraySize);
 
 public:
 	NinjaPacket();
@@ -42,7 +46,9 @@ public:
 	int					getDevice();
 	void				setDevice(int nDevice);
 	unsigned long long	getData();
+	byte* 				getDataArray();
 	void				setData(unsigned long long nData);
+	void 				setData(byte* dataPointer, byte pos);
 	byte				getEncoding();
 	void				setEncoding(byte nEncoding);
 	word				getTiming();
