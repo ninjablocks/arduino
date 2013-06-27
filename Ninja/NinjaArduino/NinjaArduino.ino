@@ -22,7 +22,7 @@ void setup()
 #ifdef V11
         digitalWrite(BLUE_LED_PIN, LOW);           // Power on Status
 #endif 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 	pinMode(RED_STAT_LED_PIN, OUTPUT);
 	pinMode(GREEN_STAT_LED_PIN, OUTPUT);
 	pinMode(BLUE_STAT_LED_PIN, OUTPUT);

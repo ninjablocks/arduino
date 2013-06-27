@@ -5,7 +5,8 @@
 
 #ifdef V11
 #define kNBDIDOnBoardRGBLED         1000
-#elif V12
+#endif
+#if defined(V12) || defined(VRPI10)
 #define kNBDIDOnBoardRGBLED         1007
 #endif
 

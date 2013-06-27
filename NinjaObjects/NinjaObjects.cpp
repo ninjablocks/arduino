@@ -80,7 +80,7 @@ int LightSensorTotalValue=0;
 boolean Enable433Receive =false;
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 byte RED_LED_VALUE =0;
 byte GREEN_LED_VALUE=0;
 byte BLUE_LED_VALUE=0;
@@ -103,7 +103,7 @@ void NinjaObjects::blinkLED(byte ledPin)
 	digitalWrite(ledPin, LOW);
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 	digitalWrite(RED_STAT_LED_PIN, HIGH);
 	digitalWrite(GREEN_STAT_LED_PIN, HIGH);
 	digitalWrite(BLUE_STAT_LED_PIN, HIGH);
@@ -118,7 +118,7 @@ void NinjaObjects::blinkLED(byte ledPin)
 	digitalWrite(BLUE_LED_PIN, HIGH);
 #endif
 	
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 	digitalWrite(RED_STAT_LED_PIN, HIGH);
 	digitalWrite(GREEN_STAT_LED_PIN, HIGH);
 	digitalWrite(BLUE_STAT_LED_PIN, HIGH);
@@ -333,7 +333,7 @@ void NinjaObjects::doReactors()
 						analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );			
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 						//RED_LED_VALUE = int((colorVal&0xff0000)>>16);
 						analogWrite(RED_STAT_LED_PIN, 255-(int((colorVal&0xff0000)>>16)));
 
@@ -358,7 +358,7 @@ void NinjaObjects::doReactors()
 						analogWrite(BLUE_LED_PIN, 255-int((colorVal&0x0000ff)>>0) );			
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 						RED_LED_VALUE = int((colorVal&0xff0000)>>16);
 						analogWrite(RED_LED_PIN, 255-RED_LED_VALUE );
 
@@ -389,7 +389,7 @@ void NinjaObjects::doReactors()
 								break;
 							
 							default:
-								#ifdef V12
+								#if defined(V12) || defined(VRPI10)
 								mySwitch.enableTransmit(TX433_PIN);
 								#endif
 								break;
@@ -450,6 +450,9 @@ void NinjaObjects::doReactors()
 							strcpy(strDATA,"V12_");		// need to find a way to generate new version number in sync with git tag - TODO
 #endif
 
+#ifdef VRPI10
+							strcpy(strDATA,"VRPi10_");		// need to find a way to generate new version number in sync with git tag - TODO
+#endif
 							strcat(strDATA,VERSION_NO);
 							doJSONResponse();
 						}
@@ -703,7 +706,7 @@ void NinjaObjects::doJSONData(char * strGUID, int intVID, int intDID, char * str
 	free(string);
 }
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 void NinjaObjects::doOnBoardRGB() //including status LED
 {
 	char tempSTR[7];
@@ -955,7 +958,7 @@ void NinjaObjects::do433(void)
 			doJSONData("1", 0, tempID, "0", 0, true,0);
 #endif
 
-#ifdef V12			
+#if defined(V12) || defined(VRPI10)
 			doJSONData("0", 0, tempID, "0", 0, true,0);
 #endif			
 		} 
@@ -966,7 +969,7 @@ void NinjaObjects::do433(void)
 			blinkLED(GREEN_LED_PIN);
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 			blinkLED(GREEN_STAT_LED_PIN);
 #endif
 
@@ -983,7 +986,7 @@ void NinjaObjects::do433(void)
 					doJSONData("1", 0, tempID, "0", 0, true,0);
 #endif
 
-#ifdef V12					
+#if defined(V12) || defined(VRPI10)
 					doJSONData("0", 0, tempID, "0", 0, true,0);
 #endif
 				else
@@ -993,7 +996,7 @@ void NinjaObjects::do433(void)
 					doJSONData("1", 0, tempID, strDATA, 0, true,0);
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 					doJSONData("0", 0, tempID, strDATA, 0, true,0);
 #endif
 				}
@@ -1278,14 +1281,18 @@ void NinjaObjects::sendObjects()
 	doOnBoardAccelerometer();
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 	do433();
 #endif
 
+// ports not present on RPi Crust
+#ifndef VRPI10
 	IsDHT22=doPort1(&DHT22_PORT);
-
+#endif
+	
 	unsigned long currentHeartbeat = millis();
 
+#ifndef VRPI10
 	if (IsDHT22) 
 		if((IgnoreHeartbeatDelay) || ((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)) doDHT22(DHT22_PORT);
 
@@ -1298,6 +1305,7 @@ void NinjaObjects::sendObjects()
 
 	if (IsDHT22) 
 		if((IgnoreHeartbeatDelay) || ((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)) doDHT22(DHT22_PORT);
+#endif
 
 // slow heart beat devices
 	if((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)

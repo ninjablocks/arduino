@@ -5,8 +5,9 @@
 // Only one define is allowed.
 
 //#define V11					1
-#define V12				1
-#define VERSION_NO 	"0.46"
+//#define V12				1
+#define VRPI10			1
+#define VERSION_NO 	"0.47"
 //#define TESTER	1
 
 #if defined(V12) && defined(V11)  
@@ -24,7 +25,7 @@
 #define RX433_INT 		1
 #endif
 
-#ifdef V12
+#if defined(V12) || defined(VRPI10)
 #define RED_LED_PIN 	10
 #define GREEN_LED_PIN 11
 #define BLUE_LED_PIN 	9
