@@ -5,8 +5,8 @@
 // Only one define is allowed.
 
 //#define V11					1
-//#define V12				1
-#define VRPI10			1
+#define V12				1
+//#define VRPI10			1
 #define VERSION_NO 	"0.47"
 //#define TESTER	1
 
