@@ -2,11 +2,18 @@
 #include <DHT22.h>
 #include <I2C.h>
 #include <aJSON.h>
-#include <Sensors.h>
 #include <Wire.h>
 #include <MMA8453Q.h>
-#include <NinjaObjects.h>
 #include <RCSwitch.h>
+
+// It is a known issue that conditional includes do not work via the arduino IDE.
+// One must manually comment/uncomment lines as per board type defined in Ninja.h (VRPI10 or V11/V12)
+#ifdef VRPI10
+//#include <NinjaPi.h>
+#else //V11 or V12
+#include <Sensors.h>
+#include <NinjaObjects.h>
+#endif
 
 void setup()
 {

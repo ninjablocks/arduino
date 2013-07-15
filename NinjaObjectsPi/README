@@ -1,0 +1,89 @@
+NinjaPi.cpp - Ninja Objects library
+  
+Based on the aJson example from http://interactive-matter.eu/how-to/ajson-arduino-json-library/
+
+15th July 2013 by jz
+	- made copy for RPi arduino crust (originally NinjaObjects.cpp)
+
+8th October 2012 by JP Liew
+	- added doWT450()to decode house, station, humidity & temp from raw data
+
+2nd October 2012 by JP Liew
+	- added TESTER code for Ninja Cape to test another fresh cape out from production
+	- added DID 8888,8889,8890 to support special command for TESTER to send/receive signal
+
+24th August 2012 by JP Liew
+	- added RGB Status light support
+	- added DID 999 for V12 status RGB
+	- added PLUGIN and UNPLUG events
+	- changed doJSONData() to support, DEVICE, PLUGIN and UNPLUG event in one function
+	- changed sensor to only send on changed event, except Distance, Light and Sound
+	- changed Light sensor to report value from 0% to 100%, in a 10 average reading
+
+20th August 2012 by JP Liew
+	- changed doOnBoardRGB(), doOnBoardTemperature(), doDHT22() to slow down to 30 seconds per update
+	- changed doDHT22() to continue poll data when first plugin until valid before obeying the heartbeat delay
+	- tidied doPort1(), doPort2() and doPort3() when dealing with DHT22
+	- disabled DHT22 from sending -99 or 0
+	- cleaned commented codes
+	- enabled accelerometer for V11 after testing
+	- split do433() into GUID=0 and GUID=1 for V12 and V11 respectively
+	
+17th August 2012 by JP Liew
+	- added support for LaCrosse WS2355 protocol for emp, humidity, rain, wind, win direction
+	- added support for LaCrosse TX3 protocol for temp
+	- changed do433() in ordered to use the same routine for V11 and V12
+	- disabled do433() from sending -1 result
+	
+14th August 2012 by JP Liew
+	- added doJSONData(...) to allow easier calling of the library
+	- clean up many precompile warnings
+	- added V11 V12 preprocessor directives for version selection
+	- changed doOnBoardRGB() to cater PWM for V12 board
+	- added doOnBoard433() for V12 board
+
+30th July 2012 by JP Liew
+	- fixed RCSwitch to add leading zeros when sending JSON data in binary
+	- fixed GREEN LED blink on GREEN when receiving 433 data
+
+5th July 2012 by JP Liew
+	- added Device ID 1003, DATA="VNO" for cape to report software version
+	- disabled responding to DID 1001 with the new all in one TX & RX board
+	- changed 433 transmit from 5 times to 8 times
+
+2nd July 2012 by JP Liew
+	- added handling for Relay Breakout board
+	
+15th June 2012 by JP Liew
+	- added doOnBoardRGB() to return RGB status
+	- added doJSONResponse() to ack actuator messages
+	- added doJSONError(int) to report error
+	
+1st June 2012 by JP Liew
+	- fixed readSerialString() stucked in while loop
+	- changed blinkGreenLED() to blinkLED() so that any LED could be blinked
+
+31st May 2012 by JP Liew
+	- added 433Mhz Rx module code.  NOTE: Receiver only works on PORT 1, utilising INT1 of ATMEGA328.
+	- added blinkGreenLED() when valid 433Mhz code received.
+
+30th May 2012 by JP Liew
+	- changed DHT22 Humidity & Temp to return float value
+
+29th May 2012 by JP Liew
+	- added 433Mhz Tx module code
+  
+28th May 2012 by JP Liew
+	- JSON protocol shorten to G,V,D,DA
+	- fixed RGB ID bug, should be 1000
+	- added return ID PIN Value if sensor UNKNOWN
+		
+25th May 2012 by JP Liew
+	- restructure JSON protocol to encapsulate devices with GUID, VID, DID and DATA
+
+5th May 2012 by JP Liew 
+	- moved to NinjaObjects library
+	- added doReactors
+		
+Version 0.1: by Marcus Schappi www.ninjablocks.com
+	

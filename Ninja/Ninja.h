@@ -11,7 +11,7 @@
 //#define TESTER	1
 
 #if defined(V12) && defined(V11)  
-#error Please select only a version by setting either V11 or V12.
+#error Please select only one version by setting either V11 or V12 (or VRPI10).
 #endif
 
 #ifdef V11
