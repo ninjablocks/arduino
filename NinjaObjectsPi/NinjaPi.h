@@ -30,12 +30,25 @@ const prog_char PROGMEM HELLO_STRING[] = "********************\nTesting aJson\n*
 #define DATA_LEN	64
 #define SLOW_DEVICE_HEARTBEAT	30000		// 30 seconds
 
+typedef struct Device Device;
+struct Device {
+	char * strGUID;
+	const int intVID;
+	const int intDID;
+	char * strDATA;
+	const int strDATALenMax;
+	double intDATA;
+	const bool IsString;
+	void (*didUpdate)(Device*);
+};
 
 class NinjaPi {
 	private:
 		unsigned long _lastHeartbeat;
+		Device ** customDevices;
 	public:
 		NinjaPi ();
+		void connectDevices(Device * customDevices[]);
 		void sendObjects();
 		void doReactors();
 		boolean decodeJSON();
@@ -44,7 +57,9 @@ class NinjaPi {
 		void doOnBoardRGB();
 		void doJSONResponse();
 		void doJSONError(int errorCode);
-		void doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString, byte dataTYPE);
+		void doJSONData(const char * strGUID, int intVID, int intDID
+		 , const char * strDATA, double numDATA, bool IsString
+		 , byte dataTYPE);
 		boolean doPort1(byte* port);
 		boolean doPort2(byte* port);
 		boolean doPort3(byte* port);
@@ -54,6 +69,19 @@ class NinjaPi {
 		void doLacrosseTX3(unsigned long long tx3value);
 		void doLacrosseWS2355(unsigned long long ws2344value);
 		void doWT450(unsigned long long value);
+		//send device to cloud
+		inline void doDevice(Device *d) {
+			//doJSONData(char * strGUID, int intVID, int intDID
+			//	, char * strDATA, double numDATA, bool IsString
+			//  , byte dataTYPE)
+			doJSONData(d->strGUID, d->intVID, d->intDID
+				, d->strDATA, d->intDATA, d->IsString
+				, DATATYPE_DEVICE	 //always DEVICE
+			);
+		}
+		void doCustomDevices();
+		inline bool checkDeviceForUpdate(Device *d);
+		bool checkDevicesForUpdate();
 };
 
 extern NinjaPi nOBJECTS;

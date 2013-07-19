@@ -67,6 +67,11 @@ NinjaPi::NinjaPi()
 	_lastHeartbeat = millis()+60000;
 }
 
+void NinjaPi::connectDevices(Device * customDevices[])
+{
+	this->customDevices = customDevices;
+}
+
 void NinjaPi::blinkLED(byte ledPin)
 {
 	int tempPORTB = PORTB;
@@ -211,7 +216,8 @@ void NinjaPi::doReactors()
 	{
 		if(decodeJSON())
 		{
-			if(intVID==0)  // VID 0 is reserved for Ninja Blocks
+			bool didUpdateDevice = checkDevicesForUpdate();
+			if(!didUpdateDevice && (intVID==0))
 			{
 				switch (intDID)
 				{
@@ -301,7 +307,7 @@ void NinjaPi::doReactors()
 			// if (intVID==vendorID)
 			// {
 			// }				
-				doJSONError(2);		// unknown vendor id
+				if (!didUpdateDevice) doJSONError(2);		// unknown vendor id
 		}
 		else
 		{
@@ -369,7 +375,8 @@ void NinjaPi::doJSONResponse()
 	free(string);
 }
 
-void NinjaPi::doJSONData(char * strGUID, int intVID, int intDID, char * strDATA, double numDATA, bool IsString, byte dataTYPE)
+void NinjaPi::doJSONData(const char * strGUID, int intVID, int intDID
+	, const char * strDATA, double numDATA, bool IsString, byte dataTYPE)
 {
 	int tempDATA=0;
 	
@@ -643,6 +650,44 @@ void NinjaPi::do433(void)
 	if (Serial.available()>0) doReactors();
 }
 
+//send custom device data to cloud
+void NinjaPi::doCustomDevices() 
+{
+	Device ** iDevices = this->customDevices;
+	while (*iDevices != (Device*)0) {
+		this->doDevice(*iDevices);
+		iDevices++;
+	}
+}
+
+bool NinjaPi::checkDeviceForUpdate(Device *d) {
+	bool didUpdateDevice = false;
+	if((intVID == d->intVID) && (intDID == d->intDID)) { // same vendor and device id's
+		size_t guidLen = strlen(strGUID);
+		if ((guidLen == strlen(d->strGUID)) && (0 == strncmp(strGUID, d->strGUID, guidLen))) { // same guid
+			if (d->IsString) {
+				strncpy(d->strDATA, strDATA, d->strDATALenMax);
+			} else {
+				d->intDATA = intDATA;
+			}
+			d->didUpdate(d);
+			didUpdateDevice = true;
+		}
+	}
+	return didUpdateDevice;
+}
+
+bool NinjaPi::checkDevicesForUpdate()
+{
+	bool didUpdateDevice = false;
+	Device ** iDevices = this->customDevices;
+	while (*iDevices != (Device*)0) {
+		didUpdateDevice |= this->checkDeviceForUpdate(*iDevices);
+		iDevices++;
+	}
+	return didUpdateDevice;
+}
+
 void NinjaPi::sendObjects() 
 {
 	boolean IsDHT22=false;
@@ -655,6 +700,7 @@ void NinjaPi::sendObjects()
 	if((currentHeartbeat - _lastHeartbeat)>SLOW_DEVICE_HEARTBEAT)
 	{
 		doOnBoardRGB();
+		doCustomDevices();
 		_lastHeartbeat=currentHeartbeat;
 	}
 }

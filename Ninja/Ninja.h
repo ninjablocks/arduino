@@ -39,6 +39,9 @@
 
 #endif
 
+#define DATATYPE_DEVICE	0
+
+
 // Analog PIN Port 1
 #define ADC_PIN_P1_1	A0
 #define ADC_PIN_P1_2	A3
