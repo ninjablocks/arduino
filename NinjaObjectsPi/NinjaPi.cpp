@@ -23,7 +23,7 @@
 
 #include <Ninja.h>
 #include <Arduino.h>
-#include <aJson.h>
+#include <aJSON.h>
 #include <MMA8453Q.h>
 #include "NinjaPi.h"
 #include <RCSwitch.h>
