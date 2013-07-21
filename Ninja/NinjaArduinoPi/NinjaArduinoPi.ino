@@ -9,7 +9,6 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>
 
-LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
 
 // It is a known issue that conditional includes do not work via the arduino IDE.
 // One must manually comment/uncomment lines as per board type defined in Ninja.h (VRPI10 or V11/V12)
@@ -19,6 +18,8 @@ LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
 //#include <Sensors.h>
 //#include <NinjaObjects.h>
 //#endif
+
+LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
 
 static void didUpdateDisplay(Device *pDisplayDevice);
 static void didUpdateDisplay(Device *pDisplayDevice) {
