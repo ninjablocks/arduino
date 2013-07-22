@@ -6,9 +6,6 @@
 #include <MMA8453Q.h>
 #include <RCSwitch.h>
 
-#include <Wire.h>
-#include <LiquidCrystal.h>
-
 
 // It is a known issue that conditional includes do not work via the arduino IDE.
 // One must manually comment/uncomment lines as per board type defined in Ninja.h (VRPI10 or V11/V12)
@@ -19,43 +16,18 @@
 //#include <NinjaObjects.h>
 //#endif
 
-LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
-
-static void didUpdateDisplay(Device *pDisplayDevice);
-static void didUpdateDisplay(Device *pDisplayDevice) {
-  Serial.print("didUpdateDisplay: "); Serial.print(pDisplayDevice->strDATA);
-  Serial.println();
-
-  lcd.clear();
-  lcd.print(pDisplayDevice->strDATA);
-}
-
-
-//Display Device
 #define DEVICES_MAX          10
 Device *devices[DEVICES_MAX + 1]; //null terminated
 
-#define DISPLAY_ROWS          2
-#define DISPLAY_CHARS_PER_ROW 16
-
-const int DISPLAY_STRING_LEN_MAX = DISPLAY_CHARS_PER_ROW * DISPLAY_ROWS;
-char displayText[DISPLAY_STRING_LEN_MAX + 1]; //rcvLEN max is 128
-Device displayDevice = {"0", 0, 240
-    , displayText, DISPLAY_STRING_LEN_MAX, 0, true
-    , &didUpdateDisplay
-};
-//end Display Device
-
 void initDevices()
 {
-  lcd.begin(DISPLAY_CHARS_PER_ROW, DISPLAY_ROWS);
-
+  
   for (int i=0; i<DEVICES_MAX + 1; i++) {
     devices[i] = (Device*)0;
   }
-  strncpy(displayText, "Ninja Blocks", DISPLAY_STRING_LEN_MAX);
-  devices[0] = &displayDevice;
-  didUpdateDisplay(&displayDevice);
+  //
+  // add device addresses to devices here
+  //
 }
 
 void initDefaultPins() {
