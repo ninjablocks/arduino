@@ -1,35 +1,30 @@
-#include "arlecProtocolDecoder.h"
+#include "bInDProtocolDecoder.h"
 
 #include "../common/Ninja.h"
 
-arlecProtocolDecoder::arlecProtocolDecoder()
+bInDProtocolDecoder::bInDProtocolDecoder()
 {
 	m_nPulseLength = 0;
 }
 
-boolean arlecProtocolDecoder::decode(RFPacket* pPacket)
+boolean bInDProtocolDecoder::decode(RFPacket* pPacket)
 {
-	if(pPacket->getSize() != 26)
+	if(pPacket->getSize() != 50)
 		return false;
-	m_nPulseLength = 330;//500;
+	//pPacket->print();
+	m_nPulseLength = 500;
 	m_nCode = 0;
 
-	// 50% tolerance, quite a lot, could/ be implemented more efficient
-	word nTolerance = m_nPulseLength * 0.35;
+	// 20% tolerance, quite a lot, could/ be implemented more efficient
+	word nTolerance = m_nPulseLength * 0.2;
 	word nMin1 = m_nPulseLength - nTolerance;
 	word nMax1 = m_nPulseLength + nTolerance;
 	word nMin2 = 2*m_nPulseLength - nTolerance;
 	word nMax2 = 2*m_nPulseLength + nTolerance;
 	word nHighPulse = 0;
 	
-	//skip the three initial pulse changes because they don't seem to be valid data
-	pPacket->next();
-	pPacket->next();
-	pPacket->next();
-
-	  
-	// 11 bit => 22 pulses on/off
-	for(int i = 1; i < 12; i++)  //for(int i = 1; i < 25; i++)
+	 //24 bits 
+	for(int i = 1; i < 25; i++)  
 	{
 		nHighPulse = pPacket->next();
 		// Simply skip low pulse, for more accurate decoding this could be checked too
@@ -54,9 +49,9 @@ boolean arlecProtocolDecoder::decode(RFPacket* pPacket)
 	return (m_nCode != 0);
 }
 
-void arlecProtocolDecoder::fillPacket(NinjaPacket* pPacket)
+void bInDProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 {
-	pPacket->setEncoding(ENCODING_ARLEC);
+	pPacket->setEncoding(ENCODING_BIND);
 	pPacket->setTiming(m_nPulseLength);
 	pPacket->setType(TYPE_DEVICE);
 	pPacket->setGuid(0);

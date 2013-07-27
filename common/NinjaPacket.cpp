@@ -54,6 +54,21 @@ byte* NinjaPacket::getDataArray()
 	return dataArray;
 }
 
+byte NinjaPacket::getArraySize()
+{
+	return arraySize;
+}
+
+void NinjaPacket::setDataInArray()
+{
+	dataInArray = true;
+}
+
+bool NinjaPacket::isDataInArray()
+{
+	return dataInArray;
+}
+
 void NinjaPacket::setData(unsigned long long nData)
 {
 	m_nData = nData;
@@ -61,9 +76,25 @@ void NinjaPacket::setData(unsigned long long nData)
 
 void NinjaPacket::setData(byte* dataPointer, byte pos)
 {
-	dataArray = dataPointer;
+	memcpy(dataArray, (const void *) dataPointer, (unsigned int) pos);
 	arraySize = pos;
-	dataInArray = true;
+	
+}
+
+void NinjaPacket::hexArrayToDecArray(char* tempArray, byte dataLength)
+{
+    char buf[3] = {0};
+	unsigned int j=0;
+	byte cval;
+	byte tdataArray[dataLength/2];
+    for (int i=0; i<dataLength-1; i+=2)
+	{
+		buf[0] = tempArray[i];
+		buf[1] = tempArray[i+1];
+		cval = (byte)strtol(buf,NULL,16);
+		tdataArray[j++] = cval;
+    }
+	setData((byte *)tdataArray, (byte) dataLength/2);
 }
 
 byte NinjaPacket::getEncoding()
@@ -129,6 +160,10 @@ bool NinjaPacket::fromJson(char* strJson)
 				int nDataLength = strlen(cTmp);
 				int nPosLowerBytes = 0;
 				
+				// first put data to an array to support devices that send more than 16 nibbles
+				hexArrayToDecArray((cTmp), (byte)nDataLength);
+				
+				//now proceed to parse data. variable m_nData will only be used by devices that use less than 16 nibbles. 
 				if(nDataLength > 8)
 				{
 					nPosLowerBytes = (nDataLength - 8);

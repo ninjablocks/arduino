@@ -5,15 +5,19 @@
 /*********************************************\
 
 Manchester encoding (as used for the Oregon Scientific v2 devices
-two short pulses -> binary 0
-a long pulse -> binary 1
+assume the very first bit is zero.
+two short pulses -> current bit is the same as previous bit
+a long pulse -> current bit is ~previous bit (flips the bit)
 a long pulse cannot follow one short pulse
-Packet starts with 31 bit premble of all ones
+each bit writen to the wire twice, first time negated.
+Packet starts with 16 bit premble of all ones 	- ie:31 long pulses 
 
-/*********************************************/
+OSv2 uses 17 nibbles in total for this device
+
+/********************DINUKA*******************/
 
 
-byte total_bits, flip, state, pos, data[25];
+byte total_bits, flip, state, pos, data[25]={0};
 enum { UNKNOWN, T0, T1, T2, T3, OK, DONE };
 
 OSv2ProtocolDecoder::OSv2ProtocolDecoder()
@@ -34,7 +38,7 @@ void OSv2ProtocolDecoder::manchester(char value) {
 
 
 void OSv2ProtocolDecoder::gotBit(char value) {
-        if(!(total_bits & 0x01))
+        if(!(total_bits & 0x01))			//only update using the second bit for each bit pair, because each bit is written twice to the wire.
         {
             data[pos] = (data[pos] >> 1) | (value ? 0x80 : 00);
         }
@@ -46,6 +50,7 @@ void OSv2ProtocolDecoder::gotBit(char value) {
             return;
         }
         state = OK;
+		//if(pos==8) Serial.println(data[pos]);
 }
 
 boolean OSv2ProtocolDecoder::decode(RFPacket* pPacket)
@@ -105,6 +110,8 @@ boolean OSv2ProtocolDecoder::decode(RFPacket* pPacket)
 	}
 	if(total_bits == 136) {
 		//resetDecoder(); //finished decoding packet, prepare for next
+		//pPacket->print();//***********************************************************DEBUG
+		//Serial.println(data[8]);
 		return 1;
 	}
 	else return false;
@@ -135,6 +142,7 @@ void OSv2ProtocolDecoder::fillPacket(NinjaPacket* pPacket)
 	pPacket->setType(TYPE_DEVICE);
 	pPacket->setGuid(0);
 	pPacket->setDevice(ID_ONBOARD_RF);
-	pPacket->setData(data, pos);
+	pPacket->setData(data, pos+1);
+	pPacket->setDataInArray();
 	resetDecoder();
 }

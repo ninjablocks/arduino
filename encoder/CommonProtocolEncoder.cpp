@@ -14,6 +14,11 @@ void CommonProtocolEncoder::setCode(unsigned long long nCode)
 	m_nCode = (unsigned long)nCode;
 }
 
+void CommonProtocolEncoder::setCode(byte* dataPointer, byte pos)
+{
+	return;
+}
+
 void CommonProtocolEncoder::encode(RFPacket* pPacket)
 {
 	pPacket->reset();

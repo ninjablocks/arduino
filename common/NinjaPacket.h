@@ -24,7 +24,7 @@ private:
 	word				m_nTiming;
 	unsigned long long	m_nData;
 	bool				dataInArray;
-	byte*				dataArray;
+	byte				dataArray[24];
 	byte				arraySize;
 	
 
@@ -47,12 +47,16 @@ public:
 	void				setDevice(int nDevice);
 	unsigned long long	getData();
 	byte* 				getDataArray();
+	byte 				getArraySize();
 	void				setData(unsigned long long nData);
 	void 				setData(byte* dataPointer, byte pos);
+	void 				hexArrayToDecArray(char* tempArray, byte dataLength);
 	byte				getEncoding();
 	void				setEncoding(byte nEncoding);
 	word				getTiming();
 	void 				setTiming(word nTiming);
+	bool 				isDataInArray();
+	void 				setDataInArray();
 
 	bool				fromJson(char* strJson);
 	void				printToSerial();

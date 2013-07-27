@@ -8,6 +8,7 @@ class Encoder
 public:
 	virtual void encode(RFPacket* pPacket) = 0;
 	virtual void setCode(unsigned long long nCode) = 0;
+	virtual void setCode(byte* nCode, byte pos) = 0;
 };
 
 #endif

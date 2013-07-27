@@ -17,10 +17,10 @@ public:
 	OSv2ProtocolDecoder();
 
 	boolean decode(RFPacket* pPacket);
-	void	fillPacket(NinjaPacket* pPacket);
+	void fillPacket(NinjaPacket* pPacket);
 	void reportSerial();
 	void gotBit(char value);	
-		void manchester(char value);
+	void manchester(char value);
 };
 
 #endif

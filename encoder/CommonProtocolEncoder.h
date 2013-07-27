@@ -16,6 +16,8 @@ public:
 
 	void	setCode(unsigned long long nCode);
 	void	encode(RFPacket* pPacket);
+	void 	setCode(byte* dataPointer, byte pos);
+	
 };
 
 #endif

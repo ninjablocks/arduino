@@ -17,6 +17,10 @@
 #include "../encoder/HE330v2ProtocolEncoder.h"
 
 #include "../decoder/OSv2ProtocolDecoder.h"
+#include "../encoder/OSv2ProtocolEncoder.h"
+
+#include "../decoder/bInDProtocolDecoder.h"
+#include "../encoder/bInDProtocolEncoder.h"
 
 extern NinjaLED leds;
 
@@ -29,6 +33,7 @@ OnBoardManager::OnBoardManager()
 	m_Decoders[2] = new arlecProtocolDecoder();
 	m_Decoders[3] = new HE330v2ProtocolDecoder();
 	m_Decoders[4] = new OSv2ProtocolDecoder();
+	m_Decoders[5] = new bInDProtocolDecoder();
 	
 }
 
@@ -48,6 +53,8 @@ void OnBoardManager::check()
 	{
 		bool bDecodeSuccessful = false;
 		m_nLastDecode = -1;
+		//if (pReceivedPacket->getSize() == 50)
+			//	pReceivedPacket->print();			//debug
 
 		for(int i = 0; i < NUM_DECODERS; i++)
 		{
@@ -120,19 +127,25 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 				break;
 			case ENCODING_HE330:
 				m_encoder = new HE330v2ProtocolEncoder(pPacket->getTiming());
-				break;	
+				break;
+			case ENCODING_OSV2:
+				m_encoder = new OSv2ProtocolEncoder(pPacket->getTiming());
+				break;
+			case ENCODING_BIND:
+				m_encoder = new bInDProtocolEncoder(pPacket->getTiming());
+				break;				
 		}
 		
-		if(pPacket->dataInArray))
-			m_encoder->setCode(pPacket->getDataArray());
+		if(pPacket->isDataInArray())
+			m_encoder->setCode(pPacket->getDataArray(), pPacket->getArraySize());
 		else 
 			m_encoder->setCode(pPacket->getData());
 			
-		m_encoder->setCode(pPacket->getData());
+		//m_encoder->setCode(pPacket->getData());
 		m_encoder->encode(&m_PacketTransmit);
 		
 		m_Transmitter.send(&m_PacketTransmit, 5);
-
+		delete m_encoder;
 		m_Receiver.start();
 	}
 

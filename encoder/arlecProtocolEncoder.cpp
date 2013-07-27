@@ -14,6 +14,12 @@ void arlecProtocolEncoder::setCode(unsigned long long nCode)
 	m_nCode = (unsigned long)nCode;
 }
 
+void arlecProtocolEncoder::setCode(byte* dataPointer, byte pos)
+{
+	return;
+}
+
+
 void arlecProtocolEncoder::encode(RFPacket* pPacket)
 {
 	pPacket->reset();

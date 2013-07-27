@@ -14,6 +14,12 @@ void HE330v2ProtocolEncoder::setCode(unsigned long long nCode)
 	m_nCode = (unsigned long)nCode;
 }
 
+void HE330v2ProtocolEncoder::setCode(byte* dataPointer, byte pos)
+{
+	return;
+}
+
+
 void HE330v2ProtocolEncoder::encode(RFPacket* pPacket)
 {
 	pPacket->reset();
