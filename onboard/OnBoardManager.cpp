@@ -22,19 +22,14 @@
 #include "../decoder/bInDProtocolDecoder.h"
 #include "../encoder/bInDProtocolEncoder.h"
 
+#include "../decoder/bOutDProtocolDecoder.h"
+#include "../encoder/bOutDProtocolEncoder.h"
+
 extern NinjaLED leds;
 
 OnBoardManager::OnBoardManager()
 {
-	m_nLastDecode = -1;
 
-	m_Decoders[0] = new CommonProtocolDecoder();
-	m_Decoders[1] = new WT450ProtocolDecoder();
-	m_Decoders[2] = new arlecProtocolDecoder();
-	m_Decoders[3] = new HE330v2ProtocolDecoder();
-	m_Decoders[4] = new OSv2ProtocolDecoder();
-	m_Decoders[5] = new bInDProtocolDecoder();
-	
 }
 
 void OnBoardManager::setup()
@@ -52,33 +47,60 @@ void OnBoardManager::check()
 	if(pReceivedPacket != NULL)
 	{
 		bool bDecodeSuccessful = false;
-		m_nLastDecode = -1;
-		//if (pReceivedPacket->getSize() == 50)
-			//	pReceivedPacket->print();			//debug
+//		if (pReceivedPacket->getSize() == 96)
+//				pReceivedPacket->print();			//debug
 
-		for(int i = 0; i < NUM_DECODERS; i++)
+		for(int i = 1; i <= NUM_DECODERS; i++)
 		{
-			if(m_Decoders[i]->decode(pReceivedPacket))
+			switch (i)
 			{
-				m_nLastDecode = i;
+				case 1:
+				m_Decoder = new CommonProtocolDecoder();
+				break;
+				
+				case 2:
+				m_Decoder = new WT450ProtocolDecoder();
+				break;
 
+				case 3:
+				m_Decoder = new arlecProtocolDecoder();
+				break;
+
+				case 4:
+				m_Decoder = new HE330v2ProtocolDecoder();
+				break;
+
+				case 5:
+				m_Decoder = new OSv2ProtocolDecoder();
+				break;
+
+				case 6:
+				m_Decoder = new bInDProtocolDecoder();
+				break;			
+			
+				case 7:
+				m_Decoder = new bOutDProtocolDecoder();
+				break;			
+			}
+			
+			if(m_Decoder->decode(pReceivedPacket))
+			{
 				bDecodeSuccessful = true;
+				
+				// Blink stat LED to show activity
+				leds.blinkStat();
+
+				NinjaPacket packet;
+				
+				m_Decoder->fillPacket(&packet);
+				
+				packet.printToSerial();	
+				delete m_Decoder;
+				break;
 			}
 			pReceivedPacket->rewind();
+			delete m_Decoder;
 		}
-
-		if(bDecodeSuccessful)
-		{
-			// Blink stat LED to show activity
-			leds.blinkStat();
-
-			NinjaPacket packet;
-			
-			m_Decoders[m_nLastDecode]->fillPacket(&packet);
-			
-			packet.printToSerial();
-		}
-
 		// Purge 
 		m_Receiver.purge();
 	}
@@ -133,7 +155,10 @@ void OnBoardManager::handle(NinjaPacket* pPacket)
 				break;
 			case ENCODING_BIND:
 				m_encoder = new bInDProtocolEncoder(pPacket->getTiming());
-				break;				
+				break;
+			case ENCODING_BOUTD:
+				m_encoder = new bOutDProtocolEncoder(pPacket->getTiming());
+				break;								
 		}
 		
 		if(pPacket->isDataInArray())

@@ -13,7 +13,7 @@
 #include "../rf/RFReceiver.h"
 #include "../rf/RFTransmitter.h"
 
-#define NUM_DECODERS	6
+#define NUM_DECODERS	7
 
 class OnBoardManager
 {
@@ -22,7 +22,7 @@ private:
 	RFTransmitter	m_Transmitter;
 	RFPacket		m_PacketTransmit;
 
-	Decoder*		m_Decoders[NUM_DECODERS];
+	Decoder*		m_Decoder;
 	int				m_nLastDecode;
 	Encoder*			m_encoder;
 

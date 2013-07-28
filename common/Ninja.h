@@ -21,6 +21,8 @@
 #define ENCODING_HE330		0x04
 #define ENCODING_OSV2		0x05
 #define ENCODING_BIND		0x06
+#define ENCODING_BOUTD		0x07
+
 
 #define VERSION	"\"V12_1.00\""
 
