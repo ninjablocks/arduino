@@ -940,6 +940,12 @@ void NinjaObjects::doLacrosseWS2355(unsigned long long ws2344value)
 	}
 }
 
+unsigned long long previousValue = 0;
+unsigned long previousTime = 0;
+//WattsClever socket's remote binary codes pulsed out every ~300ms. temp/humidty sensor ~500ms
+#define RF_DEBOUNCE_MILLIS 700
+//WattsClever socket's remote binary codes vary by the 4th bit, ie 8.  Near identical temp/humidity values vary by around 3-5
+#define RF_VALUE_TOLERANCE 7
 void NinjaObjects::do433(void)
 {
 	int tempID;
@@ -952,6 +958,9 @@ void NinjaObjects::do433(void)
 	if (mySwitch.available() && (mySwitch.getReceivedProtocol()>0 && mySwitch.getReceivedProtocol()<6))
 	{
 		unsigned long long value = mySwitch.getReceivedValue();
+		unsigned long long diff = value - previousValue;
+		if (value < previousValue) { diff = previousValue - value; }
+		unsigned long timeReceived = millis();
 		if (value == 0) // unknown encoding
 		{
 #ifdef V11
@@ -962,8 +971,13 @@ void NinjaObjects::do433(void)
 			doJSONData("0", 0, tempID, "0", 0, true,0);
 #endif			
 		} 
-		else 
+		else if ((timeReceived > (previousTime + RF_DEBOUNCE_MILLIS)) // time is after debounce period from previous reading
+			 || (diff > RF_VALUE_TOLERANCE) // or it is a different value
+			 )
 		{
+			previousValue = value;
+			previousTime = timeReceived;
+
 			// Blink Green LED to show data valid
 #ifdef V11
 			blinkLED(GREEN_LED_PIN);
