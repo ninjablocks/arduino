@@ -47,3 +47,6 @@ Home Easy 2ch wall socket - Encoding 0x01
 WT450     - Encoding 0x02
 ARLEC door chime - Encoding 0x03
 Home Easy Power sockets - Encoding 0x04
+Oregon Scientific weather station - 0x05
+Aldi Power socket Indoor - 0x06
+Aldi Power socket outdoor - 0x07
